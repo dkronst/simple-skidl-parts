@@ -1,0 +1,11 @@
+__pycache__/*
+*/__pycache__/*
+.vscode
+build/*
+dist/*
+__main__*
+*.erc
+*.log
+test_*
+.dccache
+*.egg-info

@@ -5,7 +5,9 @@ This module defines power circuits
 from re import A
 from skidl import *
 
-_R = Part("Device", "R", footprint = 'Resistor_SMD:R_0805_2012Metric', dest=TEMPLATE)
+__all__ = ["dc_motor_on_off", "low_dropout_power"]
+
+_R = Part("Device", "R", footprint='Resistor_SMD:R_0805_2012Metric', dest=TEMPLATE)
 
 def _get_logic_mosfet(v_signal_min: float, current_max: float) -> Part:
     """
@@ -21,13 +23,11 @@ def _get_logic_mosfet(v_signal_min: float, current_max: float) -> Part:
     """
     # For the moment, only two mosfets can be chosen. One for 3.3V and one for 5V.
     assert current_max <= 30
-    v33 = Part("Transistor_FET", "IRLIZ44N", footprint="TO-220-3_Vertical")   
-    v5 = Part("Transistor_FET", "IRLZ44N", footprint="TO-220-3_Vertical")
 
     if v_signal_min >= 4.5:
-        return v5
+        return Part("Transistor_FET", "IRLZ44N", footprint="TO-220-3_Horizontal_TabDown", value="IRLZ44N")
     else:
-        return v33
+        return Part("Transistor_FET", "IRLIZ44N", footprint="TO-220-3_Horizontal_TabDown", value="IRLIZ44N")
 
 @subcircuit
 def dc_motor_on_off(gate: Net, vin: Net, gnd: Net, v_signal_min: float = 5, motor_current_max: float = 10) -> None:
@@ -37,7 +37,7 @@ def dc_motor_on_off(gate: Net, vin: Net, gnd: Net, v_signal_min: float = 5, moto
 
     Args:
         gate (Net): The control signal - on is high.
-        vin (Net): Connect this pin to the motor's negative side. The other side to the motor's power source.
+        vin (Net): Connect this net to the motor's negative lead. The other side to the motor's power source.
         gnd (Net): Ground net for both motor and signal
         v_signal_min (float, optional): Defaults to 5 (V).
         motor_current_max (float, optional): Defaults to 10(A).
@@ -53,7 +53,7 @@ def dc_motor_on_off(gate: Net, vin: Net, gnd: Net, v_signal_min: float = 5, moto
     R_pd[2] += gate
 
     # protect mosfet
-    D = Part("Diode", "1N4001", footprint="D_SOD-123")
+    D = Part("Diode", "1N4004", footprint="D_SOD-123")
     D[1] += vin
     D[2] += gnd
 
@@ -77,16 +77,16 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
         Part: The subcircuit of this power unit
     """
     
-    reg = Part("Regulator_Linear", "LM7805_TO220", footprint="TO-220-3_Vertical")
+    reg = Part("Regulator_Linear", "LM78M05_TO252", footprint="TO-252-2")  # JLCPCB part #C55509
 
-    C1 = Part("Device", "CP", value = "33uF", footprint="CP_Elec_6.3x5.8")
-    C2 = Part("Device", "CP", value = "0.1uF", footprint="CP_Elec_6.3x5.8")
+    C1 = Part("Device", "CP", value = "33uF", footprint="CP_Elec_6.3x5.4")
+    C2 = Part("Device", "CP", value = "0.1uF", footprint="C_0805_2012Metric")
 
     if reverse_polarity_protection:
         D = Part("Diode", "1N4001", footprint="D_SOD-123")
-        n = Net()
-        D[1] += vin
-        D[2] += n
+        n = Net(vin.name, drive=POWER)
+        D[2] += vin
+        D[1] += n
     else:
         n = vin
 
@@ -95,6 +95,6 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
     C2[1] += out
     C2[2] += gnd
 
-    reg[1] += vin
+    reg[1] += n
     reg[2] += gnd
     reg[3] += out
