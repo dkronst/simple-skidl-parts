@@ -23,11 +23,17 @@ def test_regulated_power(reverse_pol):
     [.25, 0.333, .5, 1.0, 1.5, 2.0, 3.0])
 )
 def test_buck(v_in, voltage_out, max_current):
+    reset()
     if v_in < voltage_out + 0.6:
-        print("voltage difference smaller than 0.6 is not supported")
+        print("Voltage difference smaller than 0.6 is not supported")
         return
 
     gnd, v12, vout = Net("GND"), Net("VIN"), Net("VOUT")
+    v12.drive = POWER
+    gnd.drive = POWER
+    vout.drive = POWER
     pow.buck_step_down(v12, vout, gnd, voltage_out, v_in, max_current)
 
+    ERC()
+    
     generate_netlist(file_=open(f"/tmp/buck_test_{v_in}_{voltage_out}_{max_current}.net", "w"))

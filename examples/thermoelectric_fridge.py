@@ -7,7 +7,9 @@ Create a thermoelectric fridge controller to control motor and peltier from a 12
 from simple_skidl_parts.analog.power import *
 from simple_skidl_parts.analog.vdiv import *
 from simple_skidl_parts.units.linear import *
+from simple_skidl_parts.analog.led import led_simple, LedSingleColors
 from skidl import *
+
 
 _R = Part("Device", "R", footprint='Resistor_SMD:R_0805_2012Metric', dest=TEMPLATE)
 
@@ -59,6 +61,20 @@ def main():
     for c, n in zip([connect_motor, connect_tec, connect_pow, connect_wire_pow, connect_wire_data],
             ["MOTOR", "TEC", "PWR", "5V-PWR", "WIRE"]):
         c.ref = n
+
+    # Add LEDs
+    for m in [to_motor, to_tec]:
+        led = led_simple(sig_voltage=15.0, color=LedSingleColors.RED, size=1.6)
+        led.signal += v12
+        led.gnd += m
+
+    led = led_simple(sig_voltage=5.0, color=LedSingleColors.YELLOW, size=2.0)
+    led.signal += v5
+    led.gnd += gnd
+
+    led = led_simple(sig_voltage=5.0, color=LedSingleColors.BLUE, size=2.0)
+    led.signal += mcu[5]
+    led.gnd += gnd
     
     connect_motor[1] += to_motor
     connect_motor[2] += v12
@@ -71,6 +87,7 @@ def main():
 
     connect_wire_pow[1] += v5
     connect_wire_pow[2] += gnd
+
 
     connect_wire_data[1] += wire1
     connect_wire_data[2] += wire1

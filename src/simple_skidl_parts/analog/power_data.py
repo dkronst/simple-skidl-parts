@@ -95,14 +95,18 @@ def get_lm2596_inductor_value(max_current:float, e_t:float) -> str:
     # according to the datasheet, the x axis starts from 0.6 up to 3.0A 
     # the y axis is 4 to 70 (V*us), however, those are not linearly scaled.
     # We have to approximate it using some linear approximation
-    x = _get_max_current_point(max_current, image.size[0])
-    y = _get_et_point(e_t, image.size[1])
-    
-    l_idx = image.getpixel((x,y))[-1]
-    print(f"L index ({max_current} -> {x}, {e_t} -> {y}): {l_idx}")
-    while x < image.size[0]:
+    x = _get_max_current_point(max_current, image.size[0]-1)
+    assert x < image.size[0]
+    y = _get_et_point(e_t, image.size[1]-1)
+    assert y < image.size[1]
+    l_idx = -1
+
+    while x >= 0:
+        l_idx = image.getpixel((x,y))[-1]
         if l_idx in _LM2596_INDUCTOR_VALUE_BY_NAME:
             return _LM2596_INDUCTOR_VALUE_BY_NAME[l_idx]
         else:
-            x+=1
+            x-=1
+
+    print(f"L index ({max_current} -> {x}, {e_t} -> {y}): {l_idx}")
     assert False, "Cannot find the correct inductor. This is probably a bug (but a different max current value should work around it)"

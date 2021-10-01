@@ -100,6 +100,18 @@ def full_bridge_rectifier(vac1: Net, vac2: Net, dc_out_p:Net, dc_out_m:Net, max_
 
 @subcircuit
 def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_voltage:float, max_current: float):
+    """
+    Creates a regulated buck (step-down) subcircuit with all the required components. Adds a reverse polarity protection.
+    
+    Args:
+        vin (Net): Unregulated input net
+        out (Net): Regulated output net
+        gnd (Net): Ground net
+        output_voltage (float): The required regulated output voltage
+        input_voltage (float): The expected (maximum) input voltage (unregulated)
+        max_current (float): Maxiumu current rating for the circuit
+    """
+
     def get_inductance(V_D: float) -> str:
         """
         returns the inductance required for the buck converter. The inductor is the most critical external part
@@ -133,19 +145,23 @@ def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_vo
         return v
     
     # The datasheet (TI) https://datasheet.lcsc.com/lcsc/1809192335_Texas-Instruments-LM2596SX-ADJ-NOPB_C29781.pdf
-    # Reverse polarity protection should be done with AO3401A P channel MOSFET. For input voltage above 12V, use a zenner diode and a large resistor
-    # to clamp down the voltage to the gate. This gives up to 4A of current.
+    # Reverse polarity protection should be done with P channel MOSFET. For input voltage above ~12V, use a zenner diode and a large resistor
+    # to clamp down the voltage to the gate.
     resistance_r1 = 1000 # Should be between 240Ohm and 1.5K according to datasheet
-    regulator = Part("Regulator_Switching", "LM2596T-ADJ", footprint="Package_TO_SOT_SMD:TO-263-5_TabPin3") # JLCPCB #C29781
+    regulator = Part("Regulator_Switching", "LM2596T-ADJ", value="LM2596T-ADJ", 
+            footprint="Package_TO_SOT_SMD:TO-263-5_TabPin3") # JLCPCB #C29781
     c_in = Part("Device", "CP", value="470uF", footprint="Capacitor_SMD:CP_Elec_16x17.5")  # Requires 50V - JLCPCB  #C178551
 
-    d1 = Part(name="SS36-E3/57T", tool=SKIDL, footprint="Diode_SMD:D_SMC")  # Footprint: DO-214AB TODO: Choose the correct diode according to datasheet
-    d1.ref_prefix = "D"
-    d1.description = "Surface Mount Schottky Barrier Rectifier"
-    d1 += Pin(num=1, func=Pin.PASSIVE)
-    d1 += Pin(num=2, func=Pin.PASSIVE)
+    if max_current*1.25 <= 1.0 or input_voltage*1.25 <= 40.0:
+        d1 = Part("Device", "D_Schottky", value="B5819W", footprint="Diode_SMD:D_SOD-123")
+        v_d1 = 0.6
+    else:
+        #C35722
+        d1 = Part("Device", "D_Schottky", value="SS36-E3/57T", footprint="Diode_SMD:DO-214AB")
+        v_d1 = 0.75
 
-    l1 = Part("Device", "L", value=get_inductance(0.5), footprint="Inductor_SMD:L_0805_2012Metric") 
+
+    l1 = Part("Device", "L", value=get_inductance(v_d1), footprint="Inductor_SMD:L_0805_2012Metric") 
     r1 = _R(value=linear.get_value_name(resistance_r1))  # Requires 1% accuracy, recommended metal film res. Locate near FB pin
     capacitance_ff, capacitance_out = get_ff_out_capacitance()
     c_ff = Part("Device", "C", value=capacitance_ff, footprint="Capacitor_SMD:C_0805_2012Metric")
@@ -165,7 +181,54 @@ def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_vo
     gnd | r1[1] | regulator["GND"] | regulator[5] | d1[1] | c_out[2] | c_in[2]
     l1[2] += c_out[1]
     l1[1] | regulator["OUT"] | d1[2] | out
-    c_in[1] | vin | regulator["VIN"]
+
+    if input_voltage >= 4:
+        rpp = reverse_polarity_protection(input_voltage=input_voltage)
+        rpp.vin += vin
+        unreg_inp = rpp.vout
+        rpp.gnd += gnd
+    else:
+        unreg_inp = vin
+
+    unreg_inp.drive = vin.drive
+    c_in[1] | unreg_inp | regulator["VIN"]
+
+
+@package
+def reverse_polarity_protection(vin: Net, gnd: Net, vout: Net, input_voltage: float, max_current: float=1.0):
+    """
+    Creates a package for reverse-polarity protection using a power mosfet and optionally 
+    a zener diode. 
+
+    Args:
+        vin (Net): The input power net
+        gnd (Net): The ground net
+        vout (Net): Output net (protected + polarity)
+        input_voltage (float): The voltage required for normal operation
+    """
+    if max_current >= 4.0:
+        pfet = Part("Transistor_FET", "IRF9540N", value="IRF9540N", footprint="TO-220-3_Horizontal_TabDown")
+    else:
+        # JLCPCB part #C15127
+        pfet = Part("Transistor_FET", "AO3401A", value="AO3401A", footprint="SOT-23")
+
+    if input_voltage >= 10:  # 10V for the max gate voltage of the mosfet (AO3401A)
+        # Add a zenner diode to clamp the voltage to ~ 5.6V.
+        d = Part("Diode", "ZMMxx", value="ZMM5V6", footprint="D_MiniMELF")
+        r = _R(value="50K")
+        r[1] += d[2]
+        r[2] += gnd
+        d[1] += vout
+        gate_in = r[1]
+    else:
+        gate_in = gnd
+    
+    assert input_voltage >= 4, "Currently, only 4V and upwards are supported for reverse polarity protection"
+
+    # The power mosfet is IRF9540N(PbF) in a TO-220AB config.
+    pfet["G"] += gate_in
+    pfet["D"] += vin
+    pfet["S"] += vout
 
 
 @subcircuit
@@ -193,10 +256,11 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
     C2 = Part("Device", "CP", value = "0.1uF", footprint="C_0805_2012Metric")
 
     if reverse_polarity_protection:
-        D = Part("Diode", "1N4001", footprint="D_SOD-123")
+        rpol = reverse_polarity_protection(input_voltage=vin_max, max_current=max_current)
         n = Net(vin.name, drive=POWER)
-        D[2] += vin
-        D[1] += n
+        rpol.vin += vin
+        rpol.vout += n
+        rpol.gnd += gnd
     else:
         n = vin
 
