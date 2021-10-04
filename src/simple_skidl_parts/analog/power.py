@@ -9,6 +9,7 @@ from re import A
 from skidl import *
 
 from ..units import linear
+from ..parts_wrapper import TrackedPart
 from .power_data import get_lm2596_inductor_value
 
 __all__ = ["dc_motor_on_off", "low_dropout_power", "buck_step_down", "full_bridge_rectifier"]
@@ -82,8 +83,8 @@ def full_bridge_rectifier(vac1: Net, vac2: Net, dc_out_p:Net, dc_out_m:Net, max_
     """
 
     db = Part("Diode_Bridge", "ABS10", footprint="Diode_SMD:Diode_Bridge_Diotec_ABS")
-    dcap1 = Part("Device", "CP", value="470uF", footprint="Capacitor_SMD:CP_Elec_16x17.5")  # Requires 50V - JLCPCB  #C178551
-    dcap2 = Part("Device", "C", value="1uF", footprint="Capacitor_SMD:C_0805_2012Metric")  # Requires 50V - JLCPCB  #C28323
+    dcap1 = TrackedPart("Device", "CP", value="470uF", footprint="Capacitor_SMD:CP_Elec_16x17.5", sku="JLCPCB:C178551")  # Requires 50V - JLCPCB  #C178551
+    dcap2 = TrackedPart("Device", "C", value="1uF", footprint="Capacitor_SMD:C_0805_2012Metric", sku="JLCPCB:C28323")  # Requires 50V - JLCPCB  #C28323
     
     assert max_voltage*math.sqrt(2) <= 50  # 50 since the caps are rated 50V.
     assert max_current <= 4.0
@@ -148,9 +149,9 @@ def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_vo
     # Reverse polarity protection should be done with P channel MOSFET. For input voltage above ~12V, use a zenner diode and a large resistor
     # to clamp down the voltage to the gate.
     resistance_r1 = 1000 # Should be between 240Ohm and 1.5K according to datasheet
-    regulator = Part("Regulator_Switching", "LM2596T-ADJ", value="LM2596T-ADJ", 
+    regulator = TrackedPart("Regulator_Switching", "LM2596T-ADJ", value="LM2596T-ADJ", sku="JLCPCB:C29781",
             footprint="Package_TO_SOT_SMD:TO-263-5_TabPin3") # JLCPCB #C29781
-    c_in = Part("Device", "CP", value="470uF", footprint="Capacitor_SMD:CP_Elec_16x17.5")  # Requires 50V - JLCPCB  #C178551
+    c_in = TrackedPart("Device", "CP", value="470uF", footprint="Capacitor_SMD:CP_Elec_16x17.5", sku="JLCPCB:C178551")  # Requires 50V - JLCPCB  #C178551
 
     if max_current*1.25 <= 1.0 or input_voltage*1.25 <= 40.0:
         d1 = Part("Device", "D_Schottky", value="B5819W", footprint="Diode_SMD:D_SOD-123")
@@ -210,7 +211,7 @@ def reverse_polarity_protection(vin: Net, gnd: Net, vout: Net, input_voltage: fl
         pfet = Part("Transistor_FET", "IRF9540N", value="IRF9540N", footprint="TO-220-3_Horizontal_TabDown")
     else:
         # JLCPCB part #C15127
-        pfet = Part("Transistor_FET", "AO3401A", value="AO3401A", footprint="SOT-23")
+        pfet = TrackedPart("Transistor_FET", "AO3401A", value="AO3401A", footprint="SOT-23", sku="JLCPCB:C15127")
 
     if input_voltage >= 10:  # 10V for the max gate voltage of the mosfet (AO3401A)
         # Add a zenner diode to clamp the voltage to ~ 5.6V.
@@ -250,7 +251,7 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
         Part: The subcircuit of this power unit
     """
     
-    reg = Part("Regulator_Linear", "LM78M05_TO252", footprint="TO-252-2")  # JLCPCB part #C55509
+    reg = TrackedPart("Regulator_Linear", "LM78M05_TO252", footprint="TO-252-2", sku="JLCPCB:C55509")  # JLCPCB part #C55509
 
     C1 = Part("Device", "CP", value = "33uF", footprint="CP_Elec_6.3x5.4")
     C2 = Part("Device", "CP", value = "0.1uF", footprint="C_0805_2012Metric")

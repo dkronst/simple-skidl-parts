@@ -8,6 +8,8 @@ from simple_skidl_parts.analog.power import *
 from simple_skidl_parts.analog.vdiv import *
 from simple_skidl_parts.units.linear import *
 from simple_skidl_parts.analog.led import led_simple, LedSingleColors
+from simple_skidl_parts.parts_wrapper import create_bom
+
 from skidl import *
 
 
@@ -88,13 +90,13 @@ def main():
     connect_wire_pow[1] += v5
     connect_wire_pow[2] += gnd
 
-
     connect_wire_data[1] += wire1
     connect_wire_data[2] += wire1
     
     ERC()
 
     generate_netlist(file_=open("/tmp/netlist.net", "w"))
+    create_bom("JLCPCB", "/tmp/bom.csv", default_circuit)
 
 if __name__ == "__main__":
     main()

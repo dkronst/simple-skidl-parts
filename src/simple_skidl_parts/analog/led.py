@@ -8,6 +8,7 @@ from enum import Enum
 from skidl import *
 
 from ..units import linear
+from ..parts_wrapper import TrackedPart
 
 _R = Part("Device", "R", footprint='Resistor_SMD:R_0805_2012Metric', dest=TEMPLATE)
 
@@ -48,7 +49,7 @@ def _get_led_value(footprint: str, color: LedSingleColors) -> Dict:
     _led_by_footprint = {
         "LED_0603_1608Metric": {
             LedSingleColors.ORANGE: {
-                "value": "XL-0603QYC", # JLCPCB number is: 
+                "value": "XL-0603QYC", 
                 "i_f": 0.02,
                 "v_f": 2.1
             },
@@ -58,11 +59,13 @@ def _get_led_value(footprint: str, color: LedSingleColors) -> Dict:
                 "i_f": 0.02
             },
             LedSingleColors.GREEN: {
+                "sku": "JLCPCB:C2288",
                 "value": "C2288",     # JLCPCB number only - change for your setup.
                 "v_f": 2.9,
                 "i_f": 0.02
             },
             LedSingleColors.WHITE: {
+                "sku": "JLCPCB:C2286",
                 "value": "KT-0603W",  # JLCPCB number is: C2286,
                 "v_f": 2.8,
                 "i_f": 0.02
@@ -73,6 +76,7 @@ def _get_led_value(footprint: str, color: LedSingleColors) -> Dict:
                 "i_f": 0.03
             },
             LedSingleColors.RED: {
+                "sku": "JLCPCB:C2286",
                 "value": "KT-0603R",
                 "v_f": 2.1,
                 "i_f": 0.02
@@ -80,11 +84,13 @@ def _get_led_value(footprint: str, color: LedSingleColors) -> Dict:
         },
         "LED_0805_2012Metric": {
             LedSingleColors.YELLOW: {
+                "sku": "JLCPCB:C2296",
                 "value": "17-21SUYC/TR8",   # JLCPCB: C2296
                 "v_f": 2.1,
                 "i_f": 0.02
             },
             LedSingleColors.BLUE: {
+                "sku": "JLCPCB:C2293",
                 "value": "XL-0805QBC",   # JLCPCB: C2293
                 "v_f": 2.9,
                 "i_f": 0.025
@@ -98,7 +104,7 @@ def _get_led_value(footprint: str, color: LedSingleColors) -> Dict:
 def led_simple(signal: Net, gnd: Net, sig_voltage: float, color: LedSingleColors, size: float):
     fp = _get_closest_footprint(size)
     led_data = _get_led_value(fp, color)
-    led = Part("Device", "LED_Small", value=led_data["value"], footprint=fp)
+    led = TrackedPart("Device", "LED_Small", value=led_data["value"], footprint=fp, sku=led_data.get("sku"))
     led[1] += signal
     i_led = led_data["i_f"]
     led_f = led_data["v_f"]
