@@ -4,8 +4,8 @@ __pycache__/*
 build/*
 dist/*
 __main__*
+*_lib_sklib.py
 *.erc
 *.log
-test_*
 .dccache
 *.egg-info
