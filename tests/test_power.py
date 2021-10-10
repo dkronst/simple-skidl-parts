@@ -14,8 +14,14 @@ def test_motor_on_off():
 def test_regulated_power(reverse_pol):
     gnd, v12, vout = Net("GND"), Net("V12"), Net("V5")
     pow.low_dropout_power(v12, gnd, vout, 12, 5, 0.4, reverse_pol)
+    ERC()
 
     generate_netlist(file_=open("/tmp/lala.net", "w"))
+
+def test_full_bridge_rectifier():
+    gnd, vac, vout = Net("GND"), Net("VAC"), Net("VDC")
+    pow.full_bridge_rectifier(vac, gnd, vout, gnd, 1, 15)
+    ERC()
 
 @pytest.mark.parametrize("v_in,voltage_out,max_current", 
     product([1.6, 3, 5, 6, 9, 12, 15, 19, 24, 28, 32],

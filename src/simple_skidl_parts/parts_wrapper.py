@@ -14,7 +14,7 @@ _JLCPCB_PREAMBLE = "JLCPCB:"
 class TrackedPart(Part):
     def __init___(self, *args, **kv):
         """
-        This function wraps skidl's Part class to add some information that's only related to
+        This class wraps skidl's Part class to add some information that's only related to
         specific providers (e.g. part numbers)
         """
 

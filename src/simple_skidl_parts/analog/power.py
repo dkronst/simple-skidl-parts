@@ -96,8 +96,8 @@ def full_bridge_rectifier(vac1: Net, vac2: Net, dc_out_p:Net, dc_out_m:Net, max_
     dc_out_m += db["-"]
 
     for d in [dcap1, dcap2]:
-        dc_out_p += c[1]
-        dc_out_m += c[2]
+        dc_out_p += d[1]
+        dc_out_m += d[2]
 
 @subcircuit
 def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_voltage:float, max_current: float):
@@ -163,10 +163,10 @@ def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_vo
 
 
     l1 = Part("Device", "L", value=get_inductance(v_d1), footprint="Inductor_SMD:L_0805_2012Metric") 
-    r1 = _R(value=linear.get_value_name(resistance_r1))  # Requires 1% accuracy, recommended metal film res. Locate near FB pin
+    r1 = _R(value=linear.get_value_name(resistance_r1))  # Requires 1% accuracy or better, recommended metal film res. Locate near FB pin
     capacitance_ff, capacitance_out = get_ff_out_capacitance()
     c_ff = Part("Device", "C", value=capacitance_ff, footprint="Capacitor_SMD:C_0805_2012Metric")
-    c_out = Part("Device", "CP", value=capacitance_out, footprint="Capacitor_SMD:CP_Elec_16x17.5")  # Requires 35V
+    c_out = Part("Device", "CP", value=capacitance_out, footprint="Capacitor_SMD:CP_Elec_16x17.5") 
 
     VREF = 1.23   # Volt, see datasheet page 9.
     resistance_r2 = resistance_r1 * (output_voltage/VREF - 1.0)
@@ -233,7 +233,7 @@ def reverse_polarity_protection(vin: Net, gnd: Net, vout: Net, input_voltage: fl
 
 
 @subcircuit
-def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float, max_current: float, reverse_polarity_protection: bool) -> Part:
+def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float, max_current: float, add_reverse_polarity_protection: bool) -> Part:
     """
     Creates a Low Dropout power unit for given parameters. The circuit is taken from
     https://www.ti.com/product/UA78?DCM=yes&utm_source=supplyframe&utm_medium=SEP&utm_campaign=not_alldatasheet&dclid=CImvu8_-ivICFQZB9ggdwfQH0w
@@ -245,7 +245,7 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
         vin_max (float): The maximum voltage allowed as input to this power unit
         vout (float): The requested output voltage
         max_current (float): Maximum allowed current
-        reverse_polarity_protection (bool): Add a reverse polarity protection diode
+        add_reverse_polarity_protection (bool): Add a reverse polarity protection diode
 
     Returns:
         Part: The subcircuit of this power unit
@@ -256,7 +256,7 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
     C1 = Part("Device", "CP", value = "33uF", footprint="CP_Elec_6.3x5.4")
     C2 = Part("Device", "CP", value = "0.1uF", footprint="C_0805_2012Metric")
 
-    if reverse_polarity_protection:
+    if add_reverse_polarity_protection:
         rpol = reverse_polarity_protection(input_voltage=vin_max, max_current=max_current)
         n = Net(vin.name, drive=POWER)
         rpol.vin += vin

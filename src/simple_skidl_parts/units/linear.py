@@ -14,7 +14,18 @@ m = 1E-3
 u = 1E-3*m
 n = 1E-3*u
 
-def get_value_name(value):
+def get_value_name(value: float, series:int = 24) -> str:
+    """
+    Returns the value name (RKM) after finding the preferred number for it (assuming a specific series)
+
+    Args:
+        value (float): The value requested
+        series (int, optional): E preferred number series. Defaults to 24.
+
+    Returns:
+        str: The requested value name (e.g. 3K8)
+    """
+
     return to_rkm(value)
 
 def e_series_number(res: float, series: int) -> float:
