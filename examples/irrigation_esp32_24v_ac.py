@@ -27,8 +27,7 @@ def connect_power(vout: Net, vin: Net, gnd: Net) -> None:
     vdc = Net("35VDC")
     vdc.drive = POWER
     full_bridge_rectifier(vin, gnd, vdc, gnd, 0.5, 24*math.sqrt(2))
-    buck_step_down(vdc, vout, gnd, 3.1, 24*math.sqrt(2), 1.0)
-
+    buck_step_down(vdc, vout, gnd, 3.1, 24*math.sqrt(2), .75)
 
 def main():
     num_of_24vac_values = 6
@@ -60,7 +59,8 @@ def main():
     ERC()
 
     generate_netlist(file_=open("/tmp/irrigation_netlist.net", "w"))
-    create_bom("JLCPCB", "/tmp/irrigation_bom.csv", skidl.default_circuit)
+    create_bom("JLCPCB", "/tmp/irrigation_bom.csv", default_circuit)
+    generate_svg()
 
 if __name__ == "__main__":
     main()

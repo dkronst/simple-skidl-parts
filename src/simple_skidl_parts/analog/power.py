@@ -158,7 +158,7 @@ def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_vo
         v_d1 = 0.6
     else:
         #C35722
-        d1 = Part("Device", "D_Schottky", value="SS36-E3/57T", footprint="Diode_SMD:DO-214AB")
+        d1 = TrackedPart("Device", "D_Schottky", value="SS36-E3/57T", footprint="Diode_SMD:D_SMA", sku="JLCPCB:C35722")
         v_d1 = 0.75
 
 
@@ -216,7 +216,7 @@ def reverse_polarity_protection(vin: Net, gnd: Net, vout: Net, input_voltage: fl
     if input_voltage >= 10:  # 10V for the max gate voltage of the mosfet (AO3401A)
         # Add a zenner diode to clamp the voltage to ~ 5.6V.
         d = Part("Diode", "ZMMxx", value="ZMM5V6", footprint="D_MiniMELF")
-        r = _R(value="50K")
+        r = _R(value=linear.get_value_name(50E+3))
         r[1] += d[2]
         r[2] += gnd
         d[1] += vout
@@ -250,11 +250,19 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
     Returns:
         Part: The subcircuit of this power unit
     """
+    assert max_current <= 1, "atm not implemented"
     
-    reg = TrackedPart("Regulator_Linear", "LM78M05_TO252", footprint="TO-252-2", sku="JLCPCB:C55509")  # JLCPCB part #C55509
+    if vout == 5.0:
+        reg = TrackedPart("Regulator_Linear", "LM78M05_TO252", footprint="TO-252-2", sku="JLCPCB:C55509")  # JLCPCB part #C55509
+        C1 = TrackedPart("Device", "C", value = "330pF")
+        C2 = TrackedPart("Device", "C", value = "100pF")
+    elif vout == 3.3:
+        reg = TrackedPart("Regulator_Linear", "AMS1117-3.3", footprint="SOT-223", sku="JLCPCB:C6186")  # JLCPCB part #C55509
+        C1 = TrackedPart("Device", "C", value = "22uF")
+        C2 = TrackedPart("Device", "C", value = "10uF")
+    else:
+        raise NotImplementedError("only 5V and 3V3 are implemented right now")
 
-    C1 = Part("Device", "CP", value = "33uF", footprint="CP_Elec_6.3x5.4")
-    C2 = Part("Device", "CP", value = "0.1uF", footprint="C_0805_2012Metric")
 
     if add_reverse_polarity_protection:
         rpol = reverse_polarity_protection(input_voltage=vin_max, max_current=max_current)
@@ -270,6 +278,6 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
     C2[1] += out
     C2[2] += gnd
 
-    reg[1] += n
-    reg[2] += gnd
-    reg[3] += out
+    reg["VI"] += n
+    reg["GND"] += gnd
+    reg["VO"] += out

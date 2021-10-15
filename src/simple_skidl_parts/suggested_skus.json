@@ -1,0 +1,64 @@
+{
+    "C 10u": [
+        {
+            "footprint": "C_1206_2012Metric",
+            "sku": "JLCPCB:C13585"
+        },
+        {
+            "footprint": "C_0805_2012Metric",
+            "sku": "JLCPCB:C15850"
+        },
+        {  
+            "footprint": "C_0805_2012Metric",
+            "sku": "JLCPCB:C440198"
+        }
+    ],
+    "C 22u": [
+        {
+            "footprint": "C_1206_2012Metric",
+            "sku": "JLCPCB:C12891"
+        }
+    ],
+    "C 22p": [
+        {
+            "footprint":"C_0805_2012Metric",
+            "sku": "JLCPCB:C1804"
+        }
+    ],
+    "C 100p": [
+        {
+            "footprint": "C_0805_2012Metric",
+            "sku": "JLCPCB:C1790"
+        }
+    ],
+    "C 330p": [
+        {
+            "footprint": "C_0805_2012Metric",
+            "sku": "JLCPCB:C51207"
+        }
+    ],
+    "CP 10u": [
+        {
+            "footprint": "CP_EIA-3216-18_Kemet-A",
+            "sku": "JLCPCB:C7171"
+        }
+    ],
+    "CP 100u": [
+        {
+            "footprint": "CP_Elec_10x10",
+            "sku": "JLCPCB:C251020"
+        }
+    ],
+    "BC847": [
+        {
+            "footprint": "SOT-23",
+            "sku": "JLCPCB:C2145"
+        }
+    ],
+    "SW_SPST": [
+        {
+            "footprint": "SMD-SW-4_5.1x5.1x1.5",
+            "sku": ["JLCPCB:C318884"]
+        }
+    ]
+}

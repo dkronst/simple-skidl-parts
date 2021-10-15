@@ -26,7 +26,7 @@ def main():
     v5.drive = POWER
     
     # Create a 5v net
-    low_dropout_power(v12, v5, gnd, 16, 5, 20, False)
+    low_dropout_power(v12, v5, gnd, 16, 5, 20, True)
 
     mcu = Part("MCU_Microchip_ATtiny", "ATtiny85-20PU", footprint="DIP-8_W7.62mm_LongPads")
     mcu[4] += gnd
