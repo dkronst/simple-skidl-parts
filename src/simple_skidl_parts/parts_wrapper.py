@@ -8,7 +8,7 @@ from pathlib import Path
 import json
 import csv
 
-from skidl import Part, Circuit
+from skidl import Part
 from skidl.circuit import Circuit
 
 _JLCPCB_PREAMBLE = "JLCPCB:"
@@ -19,19 +19,22 @@ def _read_parts_skus() -> Dict:
     
 
 class TrackedPart(Part):
-    def __init___(self, *args, **kv):
+    def __init__(self, *args, **kv):
         """
         This class wraps skidl's Part class to add some information that's only related to
         specific providers (e.g. part numbers)
         """
 
-        print(f"TrackedPart: {args} {kv}")
-
         if "sku" in kv:
-            self.sku = kv.pop("sku")
+            sku = kv.pop("sku")
         else:
-            self.sku = None
-            key_long = f"{self.name} {self.value}"  
+            sku = None
+
+        super().__init__(*args, **kv)
+
+        self.sku = sku
+        if sku is None:
+            key_long = f"{self.name} {self.value}"
             key_short = f"{self.name}"
             
             full = _read_parts_skus()
@@ -40,16 +43,13 @@ class TrackedPart(Part):
             elif key_short in full:
                 all_parts = full[key_short]
             else:
-                super().__init__(*args, **kv)
                 return
 
             if "footprint" not in kv:
                 kv["footprint"] = self.footprint = all_parts[0]["footprint"]
 
             by_footprint = {k["footprint"]:k["sku"] for k in all_parts}
-            self.sku = by_footprint.get(kv["footprint"])
-
-        super().__init__(*args, **kv)
+            sku = by_footprint.get(kv["footprint"])
 
 
 def _jlcpcb_line_gen(part:Part) -> List[str]:
