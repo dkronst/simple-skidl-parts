@@ -5,9 +5,6 @@ import simple_skidl_parts.analog.power as pow
 from simple_skidl_parts.units.linear import e_series_number
 from skidl import *
 
-from simple_skidl_parts.units.linear import e_series_number
-
-
 @pytest.mark.parametrize("res,expected", [(10.1, 10), (10, 10), (11, 11), (430.1, 430), (423, 430), (1.01, 1.0)])
 def test_closest_preferred_number_e24(res, expected):
     assert e_series_number(res, 24) == expected

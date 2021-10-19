@@ -26,7 +26,7 @@ def get_value_name(value: float, series:int = 24) -> str:
         str: The requested value name (e.g. 3K8)
     """
 
-    return to_rkm(value)
+    return to_rkm(e_series_number(value, series))
 
 def e_series_number(res: float, series: int) -> float:
     """

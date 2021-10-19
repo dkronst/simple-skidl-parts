@@ -163,14 +163,14 @@ def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_vo
 
 
     l1 = Part("Device", "L", value=get_inductance(v_d1), footprint="Inductor_SMD:L_0805_2012Metric") 
-    r1 = _R(value=linear.get_value_name(resistance_r1))  # Requires 1% accuracy or better, recommended metal film res. Locate near FB pin
+    r1 = _R(value=linear.get_value_name(resistance_r1, 48))  # Requires 1% accuracy or better, recommended metal film res. Locate near FB pin
     capacitance_ff, capacitance_out = get_ff_out_capacitance()
     c_ff = Part("Device", "C", value=capacitance_ff, footprint="Capacitor_SMD:C_0805_2012Metric")
     c_out = Part("Device", "CP", value=capacitance_out, footprint="Capacitor_SMD:CP_Elec_16x17.5") 
 
     VREF = 1.23   # Volt, see datasheet page 9.
     resistance_r2 = resistance_r1 * (output_voltage/VREF - 1.0)
-    r2 = _R(value=linear.get_value_name(resistance_r2))  # Requires at least 1% accuracy TODO: create correct resistor combination
+    r2 = _R(value=linear.get_value_name(resistance_r2, 48))  # Requires at least 1% accuracy
     
     # connect the parts:
     vdiv = Net("FB")
@@ -254,12 +254,12 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
     
     if vout == 5.0:
         reg = TrackedPart("Regulator_Linear", "LM78M05_TO252", footprint="TO-252-2", sku="JLCPCB:C55509")  # JLCPCB part #C55509
-        C1 = TrackedPart("Device", "C", value = "330pF")
-        C2 = TrackedPart("Device", "C", value = "100pF")
+        C1 = TrackedPart("Device", "C", value = "330p")
+        C2 = TrackedPart("Device", "C", value = "100p")
     elif vout == 3.3:
         reg = TrackedPart("Regulator_Linear", "AMS1117-3.3", footprint="SOT-223", sku="JLCPCB:C6186")  # JLCPCB part #C55509
-        C1 = TrackedPart("Device", "C", value = "22uF")
-        C2 = TrackedPart("Device", "C", value = "10uF")
+        C1 = TrackedPart("Device", "C", value = "22u")
+        C2 = TrackedPart("Device", "C", value = "10u")
     else:
         raise NotImplementedError("only 5V and 3V3 are implemented right now")
 

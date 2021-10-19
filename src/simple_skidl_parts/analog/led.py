@@ -9,6 +9,7 @@ from skidl import *
 
 from ..units import linear
 from ..parts_wrapper import TrackedPart
+from .resistors import small_resistor as _R
 
 _R = Part("Device", "R", footprint='Resistor_SMD:R_0805_2012Metric', dest=TEMPLATE)
 
@@ -114,3 +115,24 @@ def led_simple(signal: Net, gnd: Net, sig_voltage: float, color: LedSingleColors
     r = _R(value=linear.get_value_name(r_value))
     r[1] += led[2]
     r[2] += gnd
+
+@subcircuit
+def led_with_bjt(signal: Net, gnd: Net, vcc: Net, vcc_voltage: float, color: LedSingleColors, size: float):
+    """
+    Creates an LED with the given parameters that uses a BJT to amplify the signal given and not rely on
+    it to provide the current
+
+    Args:
+        signal (Net): [description]
+        gnd (Net): [description]
+        vcc (Net): [description]
+        vcc_voltage (float): [description]
+        color (LedSingleColors): [description]
+        size (float): [description]
+    """
+    bjt = TrackedPart("Transistor_BJT", "BC847", value="MMBT5551")
+    signal & _R(10000) & bjt["B"]
+    vcc += bjt["C"]
+    led = led_simple(sig_voltage=vcc_voltage, color=color, size=size)
+    led.signal += bjt["E"]
+    led.gnd += gnd

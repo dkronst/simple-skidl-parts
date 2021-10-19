@@ -25,13 +25,12 @@ class TrackedPart(Part):
         specific providers (e.g. part numbers)
         """
 
+        print(f"TrackedPart: {args} {kv}")
+
         if "sku" in kv:
             self.sku = kv.pop("sku")
         else:
             self.sku = None
-
-        super().__init__(*args, **kv)
-        if self.sku is None:
             key_long = f"{self.name} {self.value}"  
             key_short = f"{self.name}"
             
@@ -41,6 +40,7 @@ class TrackedPart(Part):
             elif key_short in full:
                 all_parts = full[key_short]
             else:
+                super().__init__(*args, **kv)
                 return
 
             if "footprint" not in kv:
@@ -49,11 +49,14 @@ class TrackedPart(Part):
             by_footprint = {k["footprint"]:k["sku"] for k in all_parts}
             self.sku = by_footprint.get(kv["footprint"])
 
+        super().__init__(*args, **kv)
+
 
 def _jlcpcb_line_gen(part:Part) -> List[str]:
     sku = part.sku[len(_JLCPCB_PREAMBLE):] if hasattr(part, "sku") \
         and part.sku is not None\
             and part.sku.startswith(_JLCPCB_PREAMBLE) else None
+
 
     return [f"{part.name} {part.value}", part.ref, part.footprint, sku]
 

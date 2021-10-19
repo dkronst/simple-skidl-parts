@@ -41,8 +41,7 @@ def main():
 
     # modules for the irrigation controller
     # power - 24VAC
-    # mcu - ESP32 - SMD
-    # usb - Add USB for programming and debugging
+    # mcu - ESP32 - SMD with USB for programming and debugging
     # wire bus for sensors - for sensors such as light sensor, humidity, temperature, soil, ph etc.
     # valve output - two possible outputs here: 1. 24VAC or 2. pulsed 9-12V DC but you can add more if you wish.
 
