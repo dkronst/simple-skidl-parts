@@ -2,6 +2,8 @@
 Defines packages and circuits for espressif ESP type MCUs
 """
 
+from typing import Tuple
+
 from simple_skidl_parts.parts_wrapper import TrackedPart
 
 from skidl import *
@@ -17,7 +19,7 @@ def _add_decoupling_caps_esp32(v33: Net, gnd: Net):
 
 
 @package
-def _dtr_cts_to_esp(dtr: Net, cts: Net, gnd: Net) -> Bus:
+def _dtr_cts_to_esp(dtr: Net, cts: Net, gnd: Net, flash: Net, rst: Net):
     """
     Create a circuit to support resetting and moving to flash mode using DTR and CTS for FTDI programmers
 
@@ -34,7 +36,8 @@ def _dtr_cts_to_esp(dtr: Net, cts: Net, gnd: Net) -> Bus:
     cts & _R(10000) & t_cts["B"]
     gnd | t_cts["E"] | t_dtr["E"]
 
-    return Bus(t_cts["C"], t_dtr["C"])
+    flash += t_cts["C"]
+    rst += t_dtr["C"]
     
 
 @subcircuit
@@ -51,16 +54,21 @@ def esp32_s2_with_serial_usb(mcu: Part) -> Bus:
         required for FTDI programming, "flash" and "reset" pins that can be directly attached to a switch
         connected to ground.
     """
-    bus = slow_usb_type_c_with_power()
-    gnd = bus["GND"]
-    v33 = bus["VREG"]
+    usb = slow_usb_type_c_with_power()
+    gnd = Net("GND")
+    v33 = Net("+3V3")
+    v5 = Net("+5V")
+
+    gnd += usb.gnd
+    v33 += usb.v33
+    v5  += usb.v5
     
-    bus["D+"] += mcu["USB_D+"]
-    bus["D-"] += mcu["USB_D-"]
+    mcu["USB_D+"] += usb.dp
+    mcu["USB_D-"] += usb.dm
 
-    bus["VREG"] += mcu["3V3"]
+    v33 += mcu["3V3"]
 
-    _add_decoupling_caps_esp32(mcu["3V3"], gnd)
+    _add_decoupling_caps_esp32(v33, gnd)
     for p in mcu["GND"]:
         p += gnd
     
@@ -71,11 +79,11 @@ def esp32_s2_with_serial_usb(mcu: Part) -> Bus:
     
     dtr, cts = Net("DTR"), Net("CTS")
     auto_flash = _dtr_cts_to_esp(dtr, cts)
-    auto_flash[1] += mcu["EN"]
-    auto_flash[2] += mcu["IO00"]
-    comm = Bus(dtr, mcu["TX*"], mcu["RX*"], v33, cts, gnd)
+    auto_flash.rst += mcu["EN"]
+    auto_flash.flash += mcu["IO00"]
+    comm = Bus("programming", dtr, mcu["TXD0"], mcu["RXD0"], v33, cts, gnd)
 
-    led_with_bjt(mcu["IO13"], gnd, v33, 3.3, LedSingleColors.GREEN, 3)
+    led_with_bjt(mcu["IO13"], gnd, v33, 3.3, LedSingleColors.GREEN, 1.6)
 
-    return Bus(bus, comm, flash, rst)
+    return Bus("usb_esp", v33, gnd, v5, comm, flash, rst)
     

@@ -1,4 +1,10 @@
 {
+    "C 1u": [
+        {
+            "footprint":"C_1206_2012Metric",
+            "sku": "JLCPCB:C1848"
+        }
+    ],
     "C 10u": [
         {
             "footprint": "C_1206_2012Metric",
@@ -61,10 +67,22 @@
             "sku": "JLCPCB:C2145"
         }
     ],
+    "BC817": [
+        {
+            "footprint": "SOT-23",
+            "sku": "JLCPCB:C2145"
+        }
+    ],
     "SW_SPST": [
         {
             "footprint": "SMD-SW-4_5.1x5.1x1.5",
-            "sku": ["JLCPCB:C318884"]
+            "sku": "JLCPCB:C318884"
+        }
+    ],
+    "ESP32-S2-WROVER": [
+        {
+            "footprint": "ESP32-S2-WROVER",
+            "sku": "JLCPCB:C701334"
         }
     ]
 }

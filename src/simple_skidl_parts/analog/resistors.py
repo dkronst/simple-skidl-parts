@@ -4,7 +4,7 @@ This module defines resistors and resistor networks
 
 from skidl import *
 from simple_skidl_parts.parts_wrapper import TrackedPart
-from ..units.linear import e_series_number
+from ..units.linear import get_value_name
 
 def small_resistor(value: float) -> TrackedPart:
     """
@@ -17,5 +17,5 @@ def small_resistor(value: float) -> TrackedPart:
         TrackedPart: A tracked part with footprint and (hopefully) an SKU.
     """
 
-    val = e_series_number(value, 24)
+    val = get_value_name(value, 24)
     return TrackedPart("Device", "R", value=val)

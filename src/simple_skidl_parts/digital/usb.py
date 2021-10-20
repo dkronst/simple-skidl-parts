@@ -39,8 +39,8 @@ def usb_to_serial(convert_to_voltage: float = 3.3) -> Bus:
     r_pd, r_en, r_t1, t_t2 = [TrackedPart("Device", "R", value="10K") for _ in range(4)]
 
 
-@subcircuit
-def slow_usb_type_c_with_power(convert_to_voltage: float=3.3) -> Bus:
+@package
+def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3.3) -> Bus:
     """
     Creates a subcircuit with a USB recepticle connector to be used as a "fast" (a.k.a. slow) USB - up to 1.2MB/sec and 
     as a power source.
@@ -52,15 +52,10 @@ def slow_usb_type_c_with_power(convert_to_voltage: float=3.3) -> Bus:
         Bus: A bus with the relevant connections
     """
     usb_connector = TrackedPart("Connector", "USB_C_Receptacle", footprint="MOLEX_105450-0101", sku="JLCPCB:C134092")
-    v33 = Net("VREG")
-    gnd = Net("GND")
-    v5  = Net("+5V")
 
     v5.drive = POWER
     gnd.drive = POWER
     v33.drive = POWER
-
-    dp, dm = Net("D+"), Net("D-")
 
     low_dropout_power(v5, v33, gnd, 5.5, convert_to_voltage, 1, False)
 
@@ -70,5 +65,3 @@ def slow_usb_type_c_with_power(convert_to_voltage: float=3.3) -> Bus:
    
     reduce(connect, usb_connector["D+"] + [dp])
     reduce(connect, usb_connector["D-"] + [dm])
-
-    return Bus(v5, v33, gnd, dp, dm) 

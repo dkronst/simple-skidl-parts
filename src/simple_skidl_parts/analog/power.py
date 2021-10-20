@@ -192,7 +192,11 @@ def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_vo
         unreg_inp = vin
 
     unreg_inp.drive = vin.drive
-    c_in[1] | unreg_inp | regulator["VIN"]
+    to_vin = Net()
+    to_vin.drive = POWER
+    c_in[1] | unreg_inp | to_vin
+    to_vin & regulator["VIN"]
+
 
 
 @package

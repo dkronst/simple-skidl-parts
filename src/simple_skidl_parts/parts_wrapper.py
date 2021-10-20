@@ -43,7 +43,7 @@ class TrackedPart(Part):
             elif key_short in full:
                 all_parts = full[key_short]
             else:
-                return
+                assert False, f"Cannot find tracked part sku/footprint '{key_long}' '{key_short}'"
 
             if "footprint" not in kv:
                 kv["footprint"] = self.footprint = all_parts[0]["footprint"]

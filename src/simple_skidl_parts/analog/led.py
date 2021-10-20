@@ -131,7 +131,10 @@ def led_with_bjt(signal: Net, gnd: Net, vcc: Net, vcc_voltage: float, color: Led
         size (float): [description]
     """
     bjt = TrackedPart("Transistor_BJT", "BC847", value="MMBT5551")
-    signal & _R(10000) & bjt["B"]
+    r = _R(value=10000)
+    signal & r[1]
+    r[2] & bjt["B"]
+
     vcc += bjt["C"]
     led = led_simple(sig_voltage=vcc_voltage, color=color, size=size)
     led.signal += bjt["E"]
