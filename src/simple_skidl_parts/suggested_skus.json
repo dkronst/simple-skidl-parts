@@ -43,6 +43,12 @@
             "sku": "JLCPCB:C51207"
         }
     ],
+    "C 10n": [
+        {
+            "footprint": "C_1206_3216Metric",
+            "sku": "JLCPCB:C1846"
+        }
+    ],
     "CP 10u": [
         {
             "footprint": "CP_EIA-3216-18_Kemet-A",
@@ -53,6 +59,22 @@
         {
             "footprint": "CP_Elec_10x10",
             "sku": "JLCPCB:C251020"
+        }
+    ],
+    "R 51": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17738"
+        },
+        {
+            "footprint": "R_0603_1608Metric",
+            "sku": "JLCPCB:C23197"
+        }
+    ],
+    "R 68": [
+        {
+            "footprint": "R_0603_1608Metric",
+            "sku": "JLCPCB:C27592"
         }
     ],
     "R 10K": [

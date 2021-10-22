@@ -341,12 +341,12 @@ def optocoupled_triac_switch(ac1: Net, ac2: Net, signal: Net, gnd: Net, load1: N
     # The surge that r_surge2 is protecting against is the one from the snubber cap. 
     
     r_surge1 = R((ac_voltage_max*2)/0.9)
-    r_surge2 = R(abs(ac_voltage_max/0.1-r_snub))
+    r_surge2 = R(abs(ac_voltage_max/0.1-snub_res))
 
     triac["G"] += opto["4"]
     opto["4"] += r_surge2[1]
 
-    out1 = Net("AC-OUT1"), Net("AC-OUT2")
+    out1 = Net("AC-OUT")
     out1.drive = POWER
     ac1.drive = POWER
 

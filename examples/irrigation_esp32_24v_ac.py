@@ -50,7 +50,7 @@ def connect_terminal_pairs(to_connect: List[Tuple[Net, Net]], ref: str):
 
 
 def main():
-    num_of_24vac_values = 6
+    num_of_24vac_values = 8
     num_of_9vdc_pulse_valves = 6
     single_row = False
 
@@ -104,7 +104,7 @@ def main():
 
     generate_netlist(file_=open("/tmp/irrigation_netlist.net", "w"))
     create_bom("JLCPCB", "/tmp/irrigation_bom.csv", default_circuit)
-    generate_svg()
+    # generate_svg()
 
 if __name__ == "__main__":
     main()
