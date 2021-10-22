@@ -2,6 +2,7 @@
 Defines packages and circuits for espressif ESP type MCUs
 """
 
+from re import A
 from typing import List
 
 from simple_skidl_parts.parts_wrapper import TrackedPart
@@ -50,7 +51,7 @@ def get_usable_gpios() -> List[str]:
     print(ret)
     return ret
 
-@package
+@subcircuit
 def _dtr_cts_to_esp(dtr: Net, cts: Net, gnd: Net, flash: Net, rst: Net):
     """
     Create a circuit to support resetting and moving to flash mode using DTR and CTS for FTDI programmers
@@ -64,8 +65,12 @@ def _dtr_cts_to_esp(dtr: Net, cts: Net, gnd: Net, flash: Net, rst: Net):
         Bus: Bus with 2 pins, CTS for ~FLASH, DTR for ~RESET
     """
     t_cts, t_dtr = [TrackedPart("Transistor_BJT", "BC847", value="MMBT5551") for a in [1,2]]
-    dtr & _R(10000) & t_dtr["B"]
-    cts & _R(10000) & t_cts["B"]
+    
+    for t,s in zip([t_cts, t_cts], [dtr, cts]):
+        r = _R(10000)
+        s & r[1] 
+        r[2] & t["B"]
+
     gnd | t_cts["E"] | t_dtr["E"]
 
     flash += t_cts["C"]
@@ -110,9 +115,9 @@ def esp32_s2_with_serial_usb(mcu: Part) -> Bus:
         norm_hi += mcu[p]
     
     dtr, cts = Net("DTR"), Net("CTS")
-    auto_flash = _dtr_cts_to_esp(dtr, cts)
-    auto_flash.rst += mcu["EN"]
-    auto_flash.flash += mcu["IO00"]
+    auto_flash = _dtr_cts_to_esp(dtr, cts, gnd, flash, rst)
+    rst += mcu["EN"]
+    flash += mcu["IO00"]
     comm = Bus("programming", dtr, mcu["TXD0"], mcu["RXD0"], v33, cts, gnd)
 
     led_with_bjt(mcu["IO13"], gnd, v33, 3.3, LedSingleColors.GREEN, 1.6)

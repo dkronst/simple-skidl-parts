@@ -77,6 +77,9 @@ def main():
     rst_button = TrackedPart("Switch", "SW_SPST")
     esp["~RESET"] += rst_button["A"]
     gnd += rst_button["B"]
+    prog_conn = Part("Connector", "Conn_01x06_Female", footprint="PinHeader_1x06_P2.54mm_Vertical")
+
+    esp[3:8] += prog_conn
 
     # get the best pins to use:
     best_pins = esp_module.get_usable_gpios()
