@@ -40,13 +40,15 @@ def usb_to_serial(convert_to_voltage: float = 3.3) -> Bus:
 
 
 @package
-def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3.3) -> Bus:
+def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3.3, 
+        esd_protection: bool=True) -> Bus:
     """
     Creates a subcircuit with a USB recepticle connector to be used as a "fast" (a.k.a. slow) USB - up to 1.2MB/sec and 
     as a power source.
     
     Args:
         convert_to_voltage (float): What voltage to convert the power to
+        esd_protection: Add ESD protection circuit to the bus, Defaults to True
 
     Returns:
         Bus: A bus with the relevant connections
@@ -60,8 +62,25 @@ def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3
     low_dropout_power(v5, v33, gnd, 5.5, convert_to_voltage, 1, False)
 
     connect = lambda x,y: x | y
-    reduce(connect, usb_connector["GND"] + [gnd, usb_connector["SHIELD"]])
+    reduce(connect, usb_connector["GND"] + [gnd])
     reduce(connect, usb_connector["VBUS"] + [v5])
-   
-    reduce(connect, usb_connector["D+"] + [dp])
-    reduce(connect, usb_connector["D-"] + [dm])
+
+    usb_connector["SHIELD"] += NC
+
+    if esd_protection:
+        c_dp = Net("DP+")
+        c_dm = Net("DP-")
+        esdp = TrackedPart("Power_Protection", "USBLC6-2SC6", footprint="SOT-23-6", sku="JLCPCB:C7519")
+        esdp["GND"] += usb_connector["GND"]
+        esdp["VBUS"] += usb_connector["VBUS"]
+        dp += esdp["6"]
+        dm += esdp["4"]
+        c_dp += esdp["1"]
+        c_dm += esdp["3"]
+    else:
+        c_dp = dp
+        c_dm = dm
+
+
+    reduce(connect, usb_connector["D+"] + [c_dp])
+    reduce(connect, usb_connector["D-"] + [c_dm])

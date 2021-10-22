@@ -1,13 +1,13 @@
 {
     "C 1u": [
         {
-            "footprint":"C_1206_2012Metric",
+            "footprint":"C_1206_3216Metric",
             "sku": "JLCPCB:C1848"
         }
     ],
     "C 10u": [
         {
-            "footprint": "C_1206_2012Metric",
+            "footprint": "C_1206_3216Metric",
             "sku": "JLCPCB:C13585"
         },
         {
@@ -21,7 +21,7 @@
     ],
     "C 22u": [
         {
-            "footprint": "C_1206_2012Metric",
+            "footprint": "C_1206_3216Metric",
             "sku": "JLCPCB:C12891"
         }
     ],
@@ -61,6 +61,12 @@
             "sku": "JLCPCB:C25804"
         }
     ],
+    "R 11K": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17429"
+        }
+    ],
     "BC847": [
         {
             "footprint": "SOT-23",
@@ -75,7 +81,7 @@
     ],
     "SW_SPST": [
         {
-            "footprint": "SMD-SW-4_5.1x5.1x1.5",
+            "footprint": "SW_SPST_TL3342",
             "sku": "JLCPCB:C318884"
         }
     ],

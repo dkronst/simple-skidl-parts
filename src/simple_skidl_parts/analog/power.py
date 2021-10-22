@@ -11,6 +11,7 @@ from skidl import *
 from ..units import linear
 from ..parts_wrapper import TrackedPart
 from .power_data import get_lm2596_inductor_value
+from .resistors import small_resistor as R
 
 __all__ = ["dc_motor_on_off", "low_dropout_power", "buck_step_down", "full_bridge_rectifier"]
 
@@ -285,3 +286,89 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
     reg["VI"] += n
     reg["GND"] += gnd
     reg["VO"] += out
+
+def _rc_snub_values(ac_voltage_max: float, ac_freq: float=50.0, max_current_ac: float = 1.5) -> Tuple[float, float]:
+    # This uses the same as the calculator for the RC snubber circuit, from: 
+    # https://learnabout-electronics.org/Downloads/HIQUEL_SnubberCalculator_AppNote_EN_0100.xls
+
+    # We'll choose some "reasonable" numbers for the snubber. These numbers may be wrong for some
+    # applications, but they might be ok for you.
+    DV_DT = 5E+6 #sec
+    DAMPING_FACTOR = 0.8
+
+    v_p2p = math.sqrt(2)*ac_voltage_max
+    l     = ac_voltage_max/(math.pi*2*ac_freq*max_current_ac)
+    ω_0   = 0.75*DV_DT/(DAMPING_FACTOR*v_p2p)
+
+    snub_cap = 1/(ω_0*ω_0*l)  # F
+    snub_res = 2*DAMPING_FACTOR*math.sqrt(l/snub_cap)
+
+    return snub_res, snub_cap
+
+@package
+def optocoupled_triac_switch(ac1: Net, ac2: Net, signal: Net, gnd: Net, load1: Net, load2: Net,
+            ac_voltage_max: float, sig_voltage: float=2.7, ac_freq: float=50.0, 
+            max_current_ac: float = 1.5):
+
+    # Some more info here:
+    # https://slideplayer.com/slide/17171190/
+    # https://electronics.stackexchange.com/questions/387080/driving-a-24vac-solenoid-with-arduino-using-a-octocopuler-and-a-triaca
+    # https://learnabout-electronics.org/Semiconductors/thyristors_66.php
+
+    snub_res, snub_cap = _rc_snub_values(ac_voltage_max, ac_freq, max_current_ac)
+    r_snub = R(snub_res)
+    c_snub = TrackedPart("Device", "C", value=linear.get_value_name(snub_cap))
+
+    triac = Part("Triac_Thyristor", "BT138-600", footprint="TO-220-3_Vertical")
+    assert max_current_ac <= 12.0, "Current above 12A is not supported currently for this type of switching"
+
+    load2.drive = POWER
+    load2 += ac2
+
+    opto = Part("Relay_SolidState", "MOC3020M", footprint="DIP-6_W7.62mm_LongPads")
+    v_f_opto = 1.4     # Given in datasheet of VO3020 by Vishay (which I use) - 1.5 max. 
+    i_f_opto = 0.02    # Although it can be reduced, this is fine.
+
+    r_val = (sig_voltage - v_f_opto)/i_f_opto
+
+    cur_lim_r = R(r_val)
+    opto["1"] += cur_lim_r[1]
+    cur_lim_r[2] += signal
+    opto["2"] += gnd
+
+    # Holding current on output is around 100μA and the maximum current for the opto-triac
+    # is 100mA, so we need a resistor to prevent maximum current and allow minimal holding current
+    # The surge that r_surge2 is protecting against is the one from the snubber cap. 
+    
+    r_surge1 = R((ac_voltage_max*2)/0.9)
+    r_surge2 = R(abs(ac_voltage_max/0.1-r_snub))
+
+    triac["G"] += opto["4"]
+    opto["4"] += r_surge2[1]
+
+    out1 = Net("AC-OUT1"), Net("AC-OUT2")
+    out1.drive = POWER
+    ac1.drive = POWER
+
+    triac["A1"] += out1
+    r_surge2[2] += out1
+
+    triac["A2"] += ac1
+    r_surge1[1] += ac1
+    r_surge1[2] += opto["6"]
+    
+    ac1 & r_snub[1]
+    r_snub[2] & c_snub[1]
+    c_snub[2] & out1
+
+    # Using a through hole for this part for now
+    fuse = Part("Device", "Polyfuse", value=max_current_ac, footprint="Fuse_Littelfuse-LVR200")
+    out1 += fuse[1]
+    fuse[2] += load1
+    load1.drive = POWER
+
+    # Lastly, protect the opto-triac from surges. The much larger triac should be fine with these.
+    tvs = Part("Device", "D_TVS_ALT", value=f"{int(ac_voltage_max*2)}", footprint="D_DO-15_P3.81mm_Vertical_KathodeUp")
+    tvs[1] += opto[4]
+    tvs[2] += opto[6]
+

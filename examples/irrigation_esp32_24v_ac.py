@@ -5,12 +5,15 @@ Create an irrigation computer that can control various solonoid type latching wa
 """
 
 import math
+from typing import List, Tuple
 
 from simple_skidl_parts.analog.power import *
+from simple_skidl_parts.analog.power import optocoupled_triac_switch
 from simple_skidl_parts.analog.vdiv import *
 from simple_skidl_parts.units.linear import *
 from simple_skidl_parts.parts_wrapper import TrackedPart, create_bom
 from simple_skidl_parts.digital.esp import esp32_s2_with_serial_usb
+import simple_skidl_parts.digital.esp as esp_module
 
 from skidl import *
 
@@ -30,9 +33,26 @@ def connect_power(vout: Net, vin: Net, gnd: Net) -> None:
     full_bridge_rectifier(vin, gnd, vdc, gnd, 0.5, 24*math.sqrt(2))
     buck_step_down(vdc, vout, gnd, 3.1, 24*math.sqrt(2), .75)
 
+
+def connect_single_row(to_connect: List[Tuple[Net, Net]], ref: str):
+    # Connect to a single row
+    num_terms = len(to_connect)*2
+    connect = Part("Connector", f"Screw_Terminal_01x{num_terms:02d}", footprint="PhoenixContact_MSTBVA_2,5_2-G_1x{num_terms:02d}_P5.00mm_Vertical", ref=ref)
+    for i, couple in enumerate(to_connect):
+        connect[i*2+1] += couple[0]
+        connect[i*2+2] += couple[1]
+
+def connect_terminal_pairs(to_connect: List[Tuple[Net, Net]], ref: str):
+    for _, couple in enumerate(to_connect):
+        connect = Part("Connector", "Screw_Terminal_01x02", footprint="PhoenixContact_MSTBVA_2,5_2-G_1x02_P5.00mm_Vertical", ref=ref)
+        connect[1] += couple[0]
+        connect[2] += couple[1]
+
+
 def main():
     num_of_24vac_values = 6
     num_of_9vdc_pulse_valves = 6
+    single_row = False
 
     v24ac = Net("24VAC")
     v24ac.drive = POWER
@@ -57,13 +77,29 @@ def main():
     rst_button = TrackedPart("Switch", "SW_SPST")
     esp["~RESET"] += rst_button["A"]
     gnd += rst_button["B"]
-            
-    # connect = Part("Connector", "Screw_Terminal_01x02", footprint="PhoenixContact_MSTBVA_2,5_2-G_1x02_P5.00mm_Vertical", dest=TEMPLATE)
 
-    # for c, n in zip([connect_motor, connect_tec, connect_pow, connect_wire_pow, connect_wire_data],
-    #         ["MOTOR", "TEC", "PWR", "5V-PWR", "WIRE"]):
-    #     c.ref = n
-    
+    # get the best pins to use:
+    best_pins = esp_module.get_usable_gpios()
+    to_connect = []
+
+    # create switches:
+    for _ in range(num_of_24vac_values):
+        pin_name = best_pins.pop(0)
+        print(f"Using {pin_name} for 24VAC valve")
+        p = mcu[pin_name]
+        otc = optocoupled_triac_switch(ac_voltage_max=24.0)
+        otc.ac1 += v24ac
+        otc.ac2 += gnd
+        to_connect.append((otc.load1, otc.load2))
+        p += otc.signal
+        gnd += otc.gnd
+
+
+    if single_row:
+        connect_single_row(to_connect, "24VAC_SOL")
+    else:
+        connect_terminal_pairs(to_connect, "24VAC_SOL")
+
     ERC()
 
     generate_netlist(file_=open("/tmp/irrigation_netlist.net", "w"))

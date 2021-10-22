@@ -2,7 +2,7 @@
 Defines packages and circuits for espressif ESP type MCUs
 """
 
-from typing import Tuple
+from typing import List
 
 from simple_skidl_parts.parts_wrapper import TrackedPart
 
@@ -17,6 +17,38 @@ def _add_decoupling_caps_esp32(v33: Net, gnd: Net):
         v33 & c[1]
         c[2] & gnd
 
+def get_usable_gpios() -> List[str]:
+    """
+    Create a list of usable GPIOs according to their preference for ESP32-S2
+
+    Returns:
+        List[str]: A list of GPIOs
+    """
+    good_pins = [
+        'GPIO35',
+        'GPIO34',
+        'GPIO33',
+        'GPIO26',
+        'GPIO14',
+        'GPIO12',
+        'GPIO13',
+        'GPIO15',
+        'GPIO2',
+        'GPIO4',
+        'GPIO16',
+        'GPIO17',
+        'GPIO5', 
+        'GPIO18', 
+        'GPIO23', 
+        'GPIO19', 
+        'GPIO22', 
+        'GPIO3', 
+        'GPIO1', 
+        'GPIO21'
+    ]
+    ret = [f"IO{int(a[4:]):02d}" for a in good_pins]
+    print(ret)
+    return ret
 
 @package
 def _dtr_cts_to_esp(dtr: Net, cts: Net, gnd: Net, flash: Net, rst: Net):
