@@ -11,8 +11,6 @@ from ..units import linear
 from ..parts_wrapper import TrackedPart
 from .resistors import small_resistor as _R
 
-_R = Part("Device", "R", footprint='Resistor_SMD:R_0805_2012Metric', dest=TEMPLATE)
-
 class LedSingleColors(Enum):
     # No RGB LEDs since they have more pins
     RED = 0,
@@ -112,7 +110,7 @@ def led_simple(signal: Net, gnd: Net, sig_voltage: float, color: LedSingleColors
 
     r_value = (sig_voltage - led_f)/i_led
     
-    r = _R(value=linear.get_value_name(r_value))
+    r = _R(r_value)
     r[1] += led[2]
     r[2] += gnd
 
@@ -131,7 +129,7 @@ def led_with_bjt(signal: Net, gnd: Net, vcc: Net, vcc_voltage: float, color: Led
         size (float): [description]
     """
     bjt = TrackedPart("Transistor_BJT", "BC847", value="MMBT5551")
-    r = _R(value=10000)
+    r = _R(10000)
     signal & r[1]
     r[2] & bjt["B"]
 

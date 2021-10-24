@@ -362,9 +362,9 @@ def optocoupled_triac_switch(ac1: Net, ac2: Net, signal: Net, gnd: Net, load1: N
     c_snub[2] & out1
 
     # Using a through hole for this part for now
-    fuse = Part("Device", "Polyfuse", value=max_current_ac, footprint="Fuse_Littelfuse-LVR200")
+    fuse = Part("Device", "Polyfuse", value=max_current_ac, footprint="Fuse_Bourns_MF-RG300")
     out1 += fuse[1]
-    fuse[2] += load1
+    load1 += fuse[2]
     load1.drive = POWER
 
     # Lastly, protect the opto-triac from surges. The much larger triac should be fine with these.

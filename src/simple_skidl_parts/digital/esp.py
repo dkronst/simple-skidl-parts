@@ -115,7 +115,7 @@ def esp32_s2_with_serial_usb(mcu: Part) -> Bus:
         norm_hi += mcu[p]
     
     dtr, cts = Net("DTR"), Net("CTS")
-    auto_flash = _dtr_cts_to_esp(dtr, cts, gnd, flash, rst)
+    _dtr_cts_to_esp(dtr, cts, gnd, flash, rst)
     rst += mcu["EN"]
     flash += mcu["IO00"]
     comm = Bus("programming", dtr, mcu["TXD0"], mcu["RXD0"], v33, cts, gnd)

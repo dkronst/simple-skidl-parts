@@ -34,19 +34,19 @@ def connect_power(vout: Net, vin: Net, gnd: Net) -> None:
     buck_step_down(vdc, vout, gnd, 3.1, 24*math.sqrt(2), .75)
 
 
-def connect_single_row(to_connect: List[Tuple[Net, Net]], ref: str):
+def connect_single_row(to_connect: List, ref: str):
     # Connect to a single row
     num_terms = len(to_connect)*2
     connect = Part("Connector", f"Screw_Terminal_01x{num_terms:02d}", footprint="PhoenixContact_MSTBVA_2,5_2-G_1x{num_terms:02d}_P5.00mm_Vertical", ref=ref)
-    for i, couple in enumerate(to_connect):
-        connect[i*2+1] += couple[0]
-        connect[i*2+2] += couple[1]
+    for i, otc in enumerate(to_connect):
+        connect[i*2+1] += otc.load1
+        connect[i*2+2] += otc.load2
 
-def connect_terminal_pairs(to_connect: List[Tuple[Net, Net]], ref: str):
-    for _, couple in enumerate(to_connect):
+def connect_terminal_pairs(to_connect: List, ref: str):
+    for _, otc in enumerate(to_connect):
         connect = Part("Connector", "Screw_Terminal_01x02", footprint="PhoenixContact_MSTBVA_2,5_2-G_1x02_P5.00mm_Vertical", ref=ref)
-        connect[1] += couple[0]
-        connect[2] += couple[1]
+        otc.load1 += connect[1]
+        otc.load2 += connect[2]
 
 
 def main():
@@ -70,6 +70,10 @@ def main():
     # power for the MCU:
     v33 = Net("+3V3")
     connect_power(v33, v24ac, gnd)
+    jack = Part("Connector", "Barrel_Jack_Switch_Pin3Ring", footprint="BarrelJack_CUI_PJ-102AH_Horizontal")
+    jack["1"] += gnd
+    jack["2"] += v24ac
+    jack["3"] += NC
 
     # The MCU: ESP32-S2-WROVER-I (no built-in antenna for better range)
     mcu = TrackedPart("RF_Module", "ESP32-S2-WROVER-I")
@@ -93,7 +97,8 @@ def main():
         otc = optocoupled_triac_switch(ac_voltage_max=24.0)
         otc.ac1 += v24ac
         otc.ac2 += gnd
-        to_connect.append((otc.load1, otc.load2))
+        # to_connect.append((otc.load1, otc.load2))
+        to_connect.append(otc)
         p += otc.signal
         gnd += otc.gnd
 
