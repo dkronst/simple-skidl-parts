@@ -41,7 +41,7 @@ def usb_to_serial(convert_to_voltage: float = 3.3) -> Bus:
 
 @package
 def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3.3, 
-        esd_protection: bool=True) -> Bus:
+        esd_protection: bool=True):
     """
     Creates a subcircuit with a USB recepticle connector to be used as a "fast" (a.k.a. slow) USB - up to 1.2MB/sec and 
     as a power source.
@@ -73,6 +73,8 @@ def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3
         esdp = TrackedPart("Power_Protection", "USBLC6-2SC6", footprint="SOT-23-6", sku="JLCPCB:C7519")
         esdp["GND"] += usb_connector["GND"]
         esdp["VBUS"] += usb_connector["VBUS"]
+        dp += Net("PROT_USB_D+")
+        dm += Net("PROT_USB_D-")
         dp += esdp["6"]
         dm += esdp["4"]
         c_dp += esdp["1"]

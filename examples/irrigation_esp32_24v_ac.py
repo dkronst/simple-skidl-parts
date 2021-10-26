@@ -14,6 +14,7 @@ from simple_skidl_parts.units.linear import *
 from simple_skidl_parts.parts_wrapper import TrackedPart, create_bom
 from simple_skidl_parts.digital.esp import esp32_s2_with_serial_usb
 import simple_skidl_parts.digital.esp as esp_module
+from simple_skidl_parts.analog.led import led_simple, LedSingleColors
 
 from skidl import *
 
@@ -107,6 +108,15 @@ def main():
         connect_single_row(to_connect, "24VAC_SOL")
     else:
         connect_terminal_pairs(to_connect, "24VAC_SOL")
+    
+    for o in to_connect:
+        a, b = o.load1, o.load2
+        d = TrackedPart("Device", "D_Small", sku="JLCPCB:C95872", footprint="D_SMA")
+        d_v_f = 1.1
+        a & d[1]
+        led = led_simple(sig_voltage=24-d_v_f, color=LedSingleColors.GREEN, size=1.6)
+        led.signal += d[2]
+        led.gnd += b
 
     ERC()
 

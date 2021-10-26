@@ -53,13 +53,14 @@ def _get_led_value(footprint: str, color: LedSingleColors) -> Dict:
                 "v_f": 2.1
             },
             LedSingleColors.YELLOW: {
-                "value": "XL-0603QYGC",
-                "v_f": 2.1,
+                "value": "Y2C-CQ2R2L",
+                "sku": "C72038",
+                "v_f": 1.7,
                 "i_f": 0.02
             },
             LedSingleColors.GREEN: {
                 "sku": "JLCPCB:C2288",
-                "value": "C2288",     # JLCPCB number only - change for your setup.
+                "value": "C2288",
                 "v_f": 2.9,
                 "i_f": 0.02
             },
@@ -70,9 +71,10 @@ def _get_led_value(footprint: str, color: LedSingleColors) -> Dict:
                 "i_f": 0.02
             },
             LedSingleColors.BLUE: {
-                "value": "BL-HB336G-TRB",
-                "v_f": 2.9,
-                "i_f": 0.03
+                "value": "BHC-ZL1M2RY",
+                "sku": "JLCPCB:C72041",
+                "v_f": 2.5,
+                "i_f": 0.025
             },
             LedSingleColors.RED: {
                 "sku": "JLCPCB:C2286",

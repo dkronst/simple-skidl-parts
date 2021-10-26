@@ -77,6 +77,32 @@
             "sku": "JLCPCB:C27592"
         }
     ],
+    "R 82": [
+        {
+            "footprint": "R_0603_1608Metric",
+            "sku": "JLCPCB:C23255"
+        }
+    ],
+    "R 240": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17572"
+        },
+        {
+            "footprint": "R_0603_1608Metric",
+            "sku": "JLCPCB:C23350"
+        }
+    ],
+    "R 1K": [
+        {
+            "footprint": "R_1206_3216Metric",
+            "sku": "JLCPCB:C4410"
+        },
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17513"
+        }
+    ],
     "R 10K": [
         {
             "footprint": "R_0805_2012Metric",

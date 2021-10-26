@@ -71,7 +71,8 @@ def _dtr_cts_to_esp(dtr: Net, cts: Net, gnd: Net, flash: Net, rst: Net):
         s & r[1] 
         r[2] & t["B"]
 
-    gnd | t_cts["E"] | t_dtr["E"]
+    gnd | t_cts["E"] 
+    gnd | t_dtr["E"]
 
     flash += t_cts["C"]
     rst += t_dtr["C"]
@@ -92,8 +93,8 @@ def esp32_s2_with_serial_usb(mcu: Part) -> Bus:
         connected to ground.
     """
     usb = slow_usb_type_c_with_power()
-    gnd = Net("GND")
-    v33 = Net("+3V3")
+    gnd = Net.get("GND")
+    v33 = Net.get("+3V3")
     v5 = Net("+5V")
 
     gnd += usb.gnd
@@ -120,7 +121,7 @@ def esp32_s2_with_serial_usb(mcu: Part) -> Bus:
     flash += mcu["IO00"]
     comm = Bus("programming", dtr, mcu["TXD0"], mcu["RXD0"], v33, cts, gnd)
 
-    led_with_bjt(mcu["IO13"], gnd, v33, 3.3, LedSingleColors.GREEN, 1.6)
+    led_with_bjt(mcu["IO13"], gnd, v33, 3.3, LedSingleColors.YELLOW, 1.6)   # Yellow, since the Vf of a BLUE or GREEN may be too high for 3v3 logic
 
     return Bus("usb_esp", v33, gnd, v5, comm, flash, rst)
     
