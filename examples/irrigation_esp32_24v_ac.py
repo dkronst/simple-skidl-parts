@@ -109,15 +109,7 @@ def main():
     else:
         connect_terminal_pairs(to_connect, "24VAC_SOL")
     
-    for o in to_connect:
-        a, b = o.load1, o.load2
-        d = TrackedPart("Device", "D_Small", sku="JLCPCB:C95872", footprint="D_SMA")
-        d_v_f = 1.1
-        a & d[1]
-        led = led_simple(sig_voltage=24-d_v_f, color=LedSingleColors.GREEN, size=1.6)
-        led.signal += d[2]
-        led.gnd += b
-
+    Net.get("+3V3").do_erc = False
     ERC()
 
     generate_netlist(file_=open("/tmp/irrigation_netlist.net", "w"))

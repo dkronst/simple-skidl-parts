@@ -49,7 +49,8 @@ class TrackedPart(Part):
                 kv["footprint"] = self.footprint = all_parts[0]["footprint"]
 
             by_footprint = {k["footprint"]:k["sku"] for k in all_parts}
-            sku = by_footprint.get(kv["footprint"])
+            self.sku = by_footprint.get(kv["footprint"])
+            
 
 
 def _jlcpcb_line_gen(part:Part) -> List[str]:
@@ -58,6 +59,7 @@ def _jlcpcb_line_gen(part:Part) -> List[str]:
             and part.sku.startswith(_JLCPCB_PREAMBLE) else None
 
 
+    print(f"Part: {part.ref} sku: {part.sku}")
     return [f"{part.name} {part.value}", part.ref, part.footprint, sku]
 
 
@@ -66,8 +68,10 @@ def create_bom(provider: str, filename: str, circ: Circuit):
     with open(filename, "w", newline="") as w:
         writer = csv.writer(w)
         writer.writerow(["Comment", "Designator", "Footprint", "JLCPCB Part # (optional)"])
+        print(f"Creating BOM for {len(circ.parts)} parts")
         for part in circ.parts:
-            writer.writerow(line_gen(part))
+            if hasattr(part, "sku") and part.sku:
+                writer.writerow(line_gen(part))
 
 _LINE_GENERATORS = {
     "JLCPCB": _jlcpcb_line_gen,

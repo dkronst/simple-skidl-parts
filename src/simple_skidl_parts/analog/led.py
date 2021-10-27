@@ -54,7 +54,7 @@ def _get_led_value(footprint: str, color: LedSingleColors) -> Dict:
             },
             LedSingleColors.YELLOW: {
                 "value": "Y2C-CQ2R2L",
-                "sku": "C72038",
+                "sku": "JLCPCB:C72038",
                 "v_f": 1.7,
                 "i_f": 0.02
             },

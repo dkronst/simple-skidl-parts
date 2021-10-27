@@ -182,15 +182,9 @@ def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_vo
     vdiv += regulator["FB"]
     vdiv += c_ff[1]
     c_ff[2] += r2[2]
-
-    def connect(x,y):
-        x | y
-        return y
-
-    reduce(connect, (gnd, r1[1], regulator["GND"], regulator[5], d1[1], c_out[2], c_in[2]))
+    gnd | r1[1] | regulator["GND"] | regulator[5] | d1[1] | c_out[2] | c_in[2]
     l1[2] += c_out[1]
-    
-    reduce(connect, (l1[1], regulator["OUT"], d1[2], out))
+    l1[1] | regulator["OUT"] | d1[2] | out
 
     if input_voltage >= 4:
         rpp = reverse_polarity_protection(input_voltage=input_voltage)
@@ -380,10 +374,3 @@ def optocoupled_triac_switch(ac1: Net, ac2: Net, signal: Net, gnd: Net, load1: N
     tvs[1] += opto[4]
     tvs[2] += opto[6]
 
-    # Add an LED. The reverse voltage could be too much for the LED, so we'll add a diode
-    d = TrackedPart("Device", "D_Small", sku="JLCPCB:C95872", footprint="D_SMA")
-    d_v_f = 1.1
-    load1 & d[1]
-    led = led_simple(sig_voltage=ac_voltage_max-d_v_f, color=LedSingleColors.GREEN, size=1.6)
-    led.signal += d[2]
-    led.gnd += load2
