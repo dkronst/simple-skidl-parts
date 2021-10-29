@@ -53,7 +53,11 @@ def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3
     Returns:
         Bus: A bus with the relevant connections
     """
-    usb_connector = TrackedPart("Connector", "USB_C_Receptacle", footprint="MOLEX_105450-0101", sku="JLCPCB:C134092")
+    #usb_connector = TrackedPart("Connector", "USB_C_Receptacle", footprint="MOLEX_105450-0101", sku="JLCPCB:C134092")
+    usb_connector = TrackedPart("Connector", "USB_B_Micro", footprint="USB_Micro-B_Amphenol_10118194_Horizontal", sku="JLCPCB:C132563")
+    usb_connector["ID"] += NC
+
+    
 
     v5.drive = POWER
     gnd.drive = POWER
@@ -61,18 +65,20 @@ def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3
 
     low_dropout_power(v5, v33, gnd, 5.5, convert_to_voltage, 1, False)
 
-    connect = lambda x,y: x | y
-    reduce(connect, usb_connector["GND"] + [gnd])
-    reduce(connect, usb_connector["VBUS"] + [v5])
+    usb_connector["GND"] | gnd
+    usb_connector["VBUS"] |  v5
 
     usb_connector["SHIELD"] += NC
 
     if esd_protection:
         c_dp = Net("DP+")
         c_dm = Net("DP-")
-        esdp = TrackedPart("Power_Protection", "USBLC6-2SC6", footprint="SOT-23-6", sku="JLCPCB:C7519")
+        esdp = TrackedPart("Power_Protection", "USBLC6-2SC6", footprint="SOT-23-6", sku="JLCPCB:C2827654") # Alternative: C7519
         esdp["GND"] += usb_connector["GND"]
         esdp["VBUS"] += usb_connector["VBUS"]
+        # c_esd = TrackedPart("Device", "C", value="100n")
+        # c_esd[1] += esdp["GND"]
+        # c_esd[2] += esdp["VBUS"]
         dp += Net("PROT_USB_D+")
         dm += Net("PROT_USB_D-")
         dp += esdp["6"]
@@ -84,5 +90,5 @@ def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3
         c_dm = dm
 
 
-    reduce(connect, usb_connector["D+"] + [c_dp])
-    reduce(connect, usb_connector["D-"] + [c_dm])
+    usb_connector["D+"] | c_dp
+    usb_connector["D-"] | c_dm

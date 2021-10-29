@@ -66,7 +66,7 @@ def _dtr_cts_to_esp(dtr: Net, cts: Net, gnd: Net, flash: Net, rst: Net):
     """
     t_cts, t_dtr = [TrackedPart("Transistor_BJT", "BC847", value="MMBT5551") for a in [1,2]]
     
-    for t,s in zip([t_cts, t_cts], [dtr, cts]):
+    for t,s in zip([t_dtr, t_cts], [dtr, cts]):
         r = _R(10000)
         s & r[1] 
         r[2] & t["B"]

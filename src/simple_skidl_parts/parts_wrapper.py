@@ -34,7 +34,8 @@ class TrackedPart(Part):
 
         self.sku = sku
         if sku is None:
-            key_long = f"{self.name} {self.value}"
+            val = self.value.split(" ")[0]
+            key_long = f"{self.name} {val}"
             key_short = f"{self.name}"
             
             full = _read_parts_skus()

@@ -108,6 +108,15 @@ def main():
         connect_single_row(to_connect, "24VAC_SOL")
     else:
         connect_terminal_pairs(to_connect, "24VAC_SOL")
+
+    # for o in to_connect:
+        
+    #     d = TrackedPart("Device", "D_Small", sku="JLCPCB:C95872", footprint="D_SMA")
+    #     d_v_f = 1.1
+    #     o.load1 += d[1]
+    #     led = led_simple(sig_voltage=24-d_v_f, color=LedSingleColors.GREEN, size=1.6)
+    #     led.signal += d[2]
+    #     o.load2 += led.gnd
     
     Net.get("+3V3").do_erc = False
     ERC()

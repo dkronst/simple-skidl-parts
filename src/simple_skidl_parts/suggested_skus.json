@@ -49,6 +49,12 @@
             "sku": "JLCPCB:C1846"
         }
     ],
+    "C 100n": [
+        {
+            "footprint": "C_0805_2012Metric",
+            "sku": "JLCPCB:C28233"
+        }
+    ],
     "CP 10u": [
         {
             "footprint": "CP_EIA-3216-18_Kemet-A",
@@ -59,6 +65,12 @@
         {
             "footprint": "CP_Elec_10x10",
             "sku": "JLCPCB:C251020"
+        }
+    ],
+    "CP 390u": [
+        {
+            "footprint": "CP_Elec_8x11.9",
+            "sku": "JLCPCB:C178358"
         }
     ],
     "R 51": [
@@ -95,12 +107,22 @@
     ],
     "R 1K": [
         {
-            "footprint": "R_1206_3216Metric",
-            "sku": "JLCPCB:C4410"
-        },
-        {
             "footprint": "R_0805_2012Metric",
             "sku": "JLCPCB:C17513"
+        },
+        {
+            "footprint": "R_1206_3216Metric",
+            "sku": "JLCPCB:C4410"
+        }
+    ],
+    "R 1K5": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C4310"
+        },
+        {
+            "footprint": "R_0603_1608Metric",
+            "sku": "JLCPCB:C22843"
         }
     ],
     "R 10K": [
@@ -113,6 +135,22 @@
         {
             "footprint": "R_0805_2012Metric",
             "sku": "JLCPCB:C17429"
+        }
+    ],
+    "R 51K": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17737"
+        },
+        {
+            "footprint": "R_0603_1608Metric",
+            "sku": "JLCPCB:C23196"
+        }
+    ],
+    "ABS2": [
+        {
+            "footprint": "Diode_SMD:Diode_Bridge_Diotec_ABS",
+            "sku": "JLCPCB:C485046"
         }
     ],
     "BC847": [
