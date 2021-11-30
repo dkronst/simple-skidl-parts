@@ -106,14 +106,15 @@ def led_simple(signal: Net, gnd: Net, sig_voltage: float, color: LedSingleColors
     fp = _get_closest_footprint(size)
     led_data = _get_led_value(fp, color)
     led = TrackedPart("Device", "LED_Small", value=led_data["value"], footprint=fp, sku=led_data.get("sku"))
-    led[1] += signal
+    print(f"LED sku: {led.sku} for {color}, {size}mm")
+    led["A"] += signal
     i_led = led_data["i_f"]
     led_f = led_data["v_f"]
 
     r_value = (sig_voltage - led_f)/i_led
     
     r = _R(r_value)
-    r[1] += led[2]
+    r[1] += led["K"]
     r[2] += gnd
 
 @subcircuit

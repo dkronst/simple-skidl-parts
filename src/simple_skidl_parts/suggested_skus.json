@@ -95,6 +95,16 @@
             "sku": "JLCPCB:C23255"
         }
     ],
+    "R 150": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17471"
+        },
+        {
+            "footprint": "R_0603_1608Metric",
+            "sku": "JLCPCB:C22808"
+        }
+    ],
     "R 240": [
         {
             "footprint": "R_0805_2012Metric",
@@ -103,6 +113,12 @@
         {
             "footprint": "R_0603_1608Metric",
             "sku": "JLCPCB:C23350"
+        }
+    ],
+    "R 620": [
+        {
+            "footprint": "R_0603_1608Metric",
+            "sku": "JLCPCB:C23220"
         }
     ],
     "R 1K": [
@@ -123,6 +139,24 @@
         {
             "footprint": "R_0603_1608Metric",
             "sku": "JLCPCB:C22843"
+        }
+    ],
+    "R 2K": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17604"
+        }
+    ],
+    "R 4K7": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17673"
+        }
+    ],
+    "R 8K2": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17828"
         }
     ],
     "R 10K": [

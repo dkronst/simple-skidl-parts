@@ -57,7 +57,7 @@ class TrackedPart(Part):
 def _jlcpcb_line_gen(part:Part) -> List[str]:
     sku = part.sku[len(_JLCPCB_PREAMBLE):] if hasattr(part, "sku") \
         and part.sku is not None\
-            and part.sku.startswith(_JLCPCB_PREAMBLE) else None
+            and part.sku.startswith(_JLCPCB_PREAMBLE) else "N/A"
 
 
     print(f"Part: {part.ref} sku: {part.sku}")
@@ -73,6 +73,10 @@ def create_bom(provider: str, filename: str, circ: Circuit):
         for part in circ.parts:
             if hasattr(part, "sku") and part.sku:
                 writer.writerow(line_gen(part))
+            elif hasattr(part, "sku"):
+                print(f"Part {part.name} has None as sku")
+            else:
+                print(f"Part {part.ref} has no sku")
 
 _LINE_GENERATORS = {
     "JLCPCB": _jlcpcb_line_gen,

@@ -9,3 +9,4 @@ __main__*
 *.log
 .dccache
 *.egg-info
+__pycache__

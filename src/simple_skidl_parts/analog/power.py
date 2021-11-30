@@ -31,10 +31,15 @@ def _get_logic_mosfet(v_signal_min: float, current_max: float) -> Part:
     # For the moment, only two mosfets can be chosen. One for 3.3V and one for 5V.
     assert current_max <= 30
 
-    if v_signal_min >= 4.5:
+    if v_signal_min >= 4.5 and current_max >= 4:
         return Part("Transistor_FET", "IRLZ44N", footprint="TO-220-3_Horizontal_TabDown", value="IRLZ44N")
-    else:
+    elif current_max >= 4:
         return Part("Transistor_FET", "IRLIZ44N", footprint="TO-220-3_Horizontal_TabDown", value="IRLIZ44N")
+    
+    if v_signal_min >= 2.5:
+        return TrackedPart("Transistor_FET", "AO3400A", sku="JLCPCB:C20917", footprint="SOT-23")
+    else:
+        raise NotImplementedError("Please add a proper MOSFET")
 
 @subcircuit
 def dc_motor_on_off(gate: Net, vin: Net, gnd: Net, v_signal_min: float = 5, motor_current_max: float = 10) -> None:
@@ -60,9 +65,9 @@ def dc_motor_on_off(gate: Net, vin: Net, gnd: Net, v_signal_min: float = 5, moto
     R_pd[2] += gate
 
     # protect mosfet from back emf
-    D = Part("Diode", "1N4004", footprint="D_SOD-123")
-    D[1] += vin
-    D[2] += gnd
+    D = TrackedPart("Diode", "SM4007", sku="JLCPCB:C64898", footprint="D_SOD-123")
+    D["K"] += vin
+    D["A"] += gnd
 
 
 @subcircuit
@@ -155,7 +160,7 @@ def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_vo
     c_in = TrackedPart("Device", "CP", value="470uF", footprint="Capacitor_SMD:CP_Elec_16x17.5", sku="JLCPCB:C178551")  # Requires 50V - JLCPCB  #C178551
 
     if max_current*1.25 <= 1.0 or input_voltage*1.25 <= 40.0:
-        d1 = Part("Device", "D_Schottky", value="B5819W", footprint="Diode_SMD:D_SOD-123")
+        d1 = TrackedPart("Device", "D_Schottky", value="B5819W", footprint="Diode_SMD:D_SOD-123", sku="JLCPCB:C8598")
         v_d1 = 0.6
     else:
         #C35722
@@ -252,7 +257,7 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
     Args:
         vin (Net): Power comming in
         out (Net): Connect your device to this net
-        gnd (Net): Ground net (common)
+        gnd (Net): Ground net (common)/D
         vin_max (float): The maximum voltage allowed as input to this power unit
         vout (float): The requested output voltage
         max_current (float): Maximum allowed current
@@ -277,7 +282,8 @@ def low_dropout_power(vin: Net, out: Net, gnd: Net, vin_max: float, vout: float,
 
     if add_reverse_polarity_protection:
         rpol = reverse_polarity_protection(input_voltage=vin_max, max_current=max_current)
-        n = Net(vin.name, drive=POWER)
+        n = Net.get(vin.name)
+        n.drive=POWER
         rpol.vin += vin
         rpol.vout += n
         rpol.gnd += gnd
@@ -374,7 +380,7 @@ def optocoupled_triac_switch(ac1: Net, ac2: Net, signal: Net, gnd: Net, load1: N
     load1.drive = POWER
 
     # Lastly, protect the opto-triac from surges. The much larger triac should be fine with these.
-    tvs = Part("Device", "D_TVS_ALT", value=f"{int(ac_voltage_max*2)}", footprint="D_DO-15_P3.81mm_Vertical_KathodeUp")
+    tvs = Part("Device", "D_TVS_ALT", value=f"{int(ac_voltage_max*2)}", footprint="Diode_THT:D_DO-15_P3.81mm_Vertical_KathodeUp")
     tvs[1] += opto[4]
     tvs[2] += opto[6]
 
