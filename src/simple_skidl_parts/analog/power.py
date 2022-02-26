@@ -2,11 +2,13 @@
 This module defines power circuits
 """
 
+from audioop import reverse
 import math
+from re import A
 from typing import Tuple
 from functools import reduce
+from pathlib import Path
 
-from re import A
 from skidl import *
 
 from ..units import linear
@@ -14,7 +16,10 @@ from ..parts_wrapper import TrackedPart
 from .power_data import get_lm2596_inductor_value
 from .resistors import small_resistor as R
 
-__all__ = ["dc_motor_on_off", "low_dropout_power", "buck_step_down", "full_bridge_rectifier"]
+from .analog_parts_lib import SSP_LIB_PATH
+
+
+__all__ = ["dc_motor_on_off", "low_dropout_power", "buck_step_down_exact_input", "full_bridge_rectifier"]
 
 def _get_logic_mosfet(v_signal_min: float, current_max: float) -> Part:
     """
@@ -105,7 +110,7 @@ def full_bridge_rectifier(vac1: Net, vac2: Net, dc_out_p:Net, dc_out_m:Net, max_
         dc_out_m += d[2]
 
 @subcircuit
-def buck_step_down(vin: Net, out: Net, gnd: Net, output_voltage: float, input_voltage:float, max_current: float):
+def buck_step_down_exact_input(vin: Net, out: Net, gnd: Net, output_voltage: float, input_voltage:float, max_current: float):
     """
     Creates a regulated buck (step-down) subcircuit with all the required components. Adds a reverse polarity protection.
     
@@ -384,3 +389,107 @@ def optocoupled_triac_switch(ac1: Net, ac2: Net, signal: Net, gnd: Net, load1: N
     tvs[1] += opto[4]
     tvs[2] += opto[6]
 
+
+@subcircuit
+def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float = 3.3, input_vmax: float = 15.0, input_vmin: float = 4.5, max_current: float = 2.0, rpp: bool = True) -> None:
+    """
+    Create a DC-DC converter for a large input voltage range, using the TI TPS54331 DC-DC converter.
+
+    Args:
+        vin (Net): Net for the input DC voltage
+        out (Net): Net for the output DC voltage
+        gnd (Net): Net for the ground
+        output_voltage (float): The output voltage
+        input_vmax (float): Maximum voltage to accept for this power converter
+        input_vmin (float): Minimum voltage to accept for this power converter
+        max_current (float): Maximum output current for this converter
+        rpp: add Reverse input polarity protection?
+    """
+    if rpp:
+        rpol = reverse_polarity_protection(input_voltage=input_vmax, max_current=max_current)
+        inp = Net.get(vin.name)
+        inp.drive=POWER
+        rpol.vin += vin
+        rpol.vout += inp
+        rpol.gnd += gnd
+    else:
+        inp = vin
+    
+    # For C1, C2, low ESR is required. 
+    ci3, c_boot, c_slow_start = [TrackedPart("Device", "C", value=v) for v in ["10p", "100p", "10p"]]
+
+    ci1, ci2 = [Part("Device", "CP", value="10u", footprint="CP_Radial_D10.0mm_P5.00mm") for _ in range(2)]
+
+    r_value = 10000
+    v_ref = 0.8  # from datasheet
+    r5 = R(r_value)
+    r6 = R(r_value * v_ref / (output_voltage-v_ref))
+
+    f_sw = 5.7E+5  # Hz
+    k_ind = 0.3    # When using low ESR. Otherwise, 0.2 should be used.
+    
+    l_min = output_voltage*(input_vmax-output_voltage)/(input_vmax*k_ind*max_current*f_sw)
+    i_ind_rms = math.sqrt(max_current*max_current+(1/12)*((output_voltage*(input_vmax-output_voltage)/(input_vmax*l_min*f_sw*0.8))**2))
+        
+    print(f"Minimum Inductance: {l_min*1000*1000}𝜇H, Inductor RMS current: {i_ind_rms}")
+
+    l = Part("Device", "L", value=linear.get_value_name(l_min*1.2))
+    
+    f_co = 2.5E+4
+    c_out_value = 1/(2*math.pi*(output_voltage/max_current)*f_co)
+    print(f"C_out: {c_out_value*1E+6}𝜇F")
+    
+    c_o_1 = Part("Device", "CP", value=linear.get_value_name(c_out_value*2))
+    c_o_2 = Part("Device", "CP", value=linear.get_value_name(c_out_value*2))
+
+    # Output Compensation
+    v_gg = 800
+    g_dc = v_gg*v_ref/output_voltage
+    r_esr = 25E-3 #Ω
+    PHASE_MARGIN = math.pi/3
+    output_capacitance = linear.e_series_number(c_out_value, 24)*4 # since we have 2 caps of 2 times c_out_value
+    phase_loss = math.atan(2*math.pi*f_co*r_esr*output_capacitance) - \
+            math.atan(2*math.pi*f_co*(output_voltage/max_current)*output_capacitance)
+    phase_boost = (PHASE_MARGIN-math.pi/2)-phase_loss
+    r_oa = 8E+6 #Ω
+    r_z_val = 2*math.pi*f_co*output_voltage*output_capacitance*r_oa/(12*v_gg*v_ref)
+    k = math.tan(phase_boost/2+math.pi/4)
+    f_z1 = f_co/k
+    f_p1 = f_co*k
+    c_z_val = 1/(2*math.pi*f_z1*r_z_val)
+    c_p_val = 1/(2*math.pi*f_p1*r_z_val)
+    print(f"Calculated R_z: {r_z_val}Ω C_z: {c_z_val*1000*1000}𝜇F C_p: {c_p_val*1000*1000}𝜇F")
+    c_z = TrackedPart("Device", "C", value=linear.get_value_name(c_z_val))
+    c_p = TrackedPart("Device", "C", value=linear.get_value_name(c_p_val))
+    r_z = R(r_z_val)
+
+    # Slow Start and undervoltage lockout
+
+    v_stop = max(input_vmin*0.9, 3.5)    # According to Datasheet, v_stop must be greater than 3.5V.
+    v_start = max(v_stop, input_vmin)
+    r_en1_val = (v_start - v_stop)/3E-6
+    v_en = 1.25    # According to Datasheet.
+    r_en2 = R(v_en/((v_start-v_en)/r_en1_val + 1E-6))
+    r_en1 = R(r_en1_val)
+
+    # Catch Diode
+    
+    d = TrackedPart("Device", "D_Schottky", value="SS54", footprint="Diode_SMD:D_SOD-123", sku="JLCPCB:C22452")
+
+    # Construct the circuit:
+    inp & ( ci1 | ci2 | ci3) & gnd
+
+    lib = SchLib(SSP_LIB_PATH, tool=SKIDL)
+    tps = TrackedPart(lib, "TPS54331", footprint="SOIC-8_3.9x4.9mm_P1.27mm", sku="JLCPCB:C9865")
+
+    tps["EN"] & r_en1 & inp
+    tps["EN"] & r_en2 & gnd
+    tps["SS"] & c_slow_start & gnd
+    
+    out & r5 & tps["VSNS"] & r6 & gnd
+    out & (c_o_1 | c_o_2) & gnd
+
+    tps["BOOT"] & c_boot & tps["PH"]
+    tps["GND"] & d & tps["PH"] & l & out
+
+    tps["COMP"] & (c_p | (c_z & r_z)) & gnd

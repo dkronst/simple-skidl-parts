@@ -125,3 +125,44 @@ def esp32_s2_with_serial_usb(mcu: Part) -> Bus:
 
     return Bus("usb_esp", v33, gnd, v5, comm, flash, rst)
     
+
+@subcircuit
+def esp32_wroom_external_programmer(mcu: Part, v33: Net, gnd: Net) -> Bus:
+    """
+    Creates a subcircuit from the given MCU. Assumes all communication is done with 3V3.
+    Do not attach 5V to this sub-circuit.
+
+    Args:
+        mcu: The MCU to wrap - should be ESP32-WROOM type.
+        v33: A 3V3 power net
+        gnd: The ground net
+
+    Returns:
+        Bus: A bus containing all the relevant traces
+    """
+
+    _add_decoupling_caps_esp32(v33, gnd)
+    for p in mcu["GND"]:
+        p += gnd
+    
+    flash, rst = Net("~FLASH"), Net("~RESET")
+    c_en = TrackedPart("Device", "C", value="1u")
+    gnd & c_en & rst
+
+    for norm_hi, p in zip([flash, rst], ["IO0", "EN"]):
+        norm_hi & _R(10000) & v33
+        norm_hi += mcu[p]
+
+    v33 += mcu["VDD"]
+    rst_button = TrackedPart("Switch", "SW_SPST")
+    flash_button = TrackedPart("Switch", "SW_SPST")
+    
+    gnd & rst_button & rst
+    gnd & flash_button & rst
+
+    gnd & TrackedPart("Device", "C", value="1u") & rst
+    v33 & TrackedPart("Device", "R", value="10K") & rst
+
+    mcu.match_pin_regex = True
+
+    return Bus("wroom_esp", v33, gnd, flash, rst, mcu[".*XD0.*"])

@@ -1,4 +1,16 @@
 {
+    "C 1n": [
+        {
+            "footprint":"C_0805_2012Metric",
+            "sku": "JLCPCB:C46653"
+        }
+    ],
+    "C 10p": [
+        {
+            "footprint":"C_0805_2012Metric",
+            "sku": "JLCPCB:C1785"
+        }
+    ],
     "C 1u": [
         {
             "footprint":"C_1206_3216Metric",
@@ -121,6 +133,12 @@
             "sku": "JLCPCB:C23220"
         }
     ],
+    "R 680": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17798"
+        }
+    ],
     "R 1K": [
         {
             "footprint": "R_0805_2012Metric",
@@ -147,6 +165,18 @@
             "sku": "JLCPCB:C17604"
         }
     ],
+    "R 2K2": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "DK:A129753TR-ND"
+        }
+    ],
+    "R 3K3": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C26010"
+        }
+    ],
     "R 4K7": [
         {
             "footprint": "R_0805_2012Metric",
@@ -171,6 +201,18 @@
             "sku": "JLCPCB:C17429"
         }
     ],
+    "R 22K": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "DK:RMCF0805FT22K0TR-ND"
+        }
+    ],
+    "R 33K": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17633"
+        }
+    ],
     "R 51K": [
         {
             "footprint": "R_0805_2012Metric",
@@ -179,6 +221,24 @@
         {
             "footprint": "R_0603_1608Metric",
             "sku": "JLCPCB:C23196"
+        }
+    ],
+    "R 82K": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17840"
+        }
+    ],
+    "R 100K": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C149504"
+        }
+    ],
+    "MMSD914": [
+        {
+            "footprint": "SOD-123",
+            "sku": "JLCPCB:C81598"
         }
     ],
     "ABS2": [

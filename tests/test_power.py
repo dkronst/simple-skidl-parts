@@ -38,8 +38,31 @@ def test_buck(v_in, voltage_out, max_current):
     v12.drive = POWER
     gnd.drive = POWER
     vout.drive = POWER
-    pow.buck_step_down(v12, vout, gnd, voltage_out, v_in, max_current)
+    pow.buck_step_down_exact_input(v12, vout, gnd, voltage_out, v_in, max_current)
 
     ERC()
     
     generate_netlist(file_=open(f"/tmp/buck_test_{v_in}_{voltage_out}_{max_current}.net", "w"))
+
+@pytest.mark.parametrize("v_in,voltage_out,max_current", 
+    product([4.5, 5, 6, 9, 12, 15, 19],
+    [1.6, 3.3, 5, 12],
+    [.5, 1.0, 1.5, 2.0, 3.0])
+)
+def test_buck_high_range(v_in, voltage_out, max_current):
+    reset()
+    vmin = v_in-0.5
+    vmax = v_in*2
+    if vmin < voltage_out + 0.6:
+        print("Voltage difference smaller than 0.6 is not supported")
+        return
+
+    gnd, v12, vout = Net("GND"), Net("VIN"), Net("VOUT")
+    v12.drive = POWER
+    gnd.drive = POWER
+    vout.drive = POWER
+    pow.buck_step_down_regular(v12, vout, gnd, voltage_out, vmin, vmax, max_current )
+
+    #ERC()
+    
+    #generate_netlist(file_=open(f"/tmp/buck_reg_test_{v_in}_{voltage_out}_{max_current}.net", "w"))

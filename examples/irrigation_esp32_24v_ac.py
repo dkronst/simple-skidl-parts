@@ -32,7 +32,7 @@ def connect_power(vout: Net, vin: Net, gnd: Net) -> None:
     vdc = Net("35VDC")
     vdc.drive = POWER
     full_bridge_rectifier(vin, gnd, vdc, gnd, 0.5, 24*math.sqrt(2))
-    buck_step_down(vdc, vout, gnd, 3.1, 24*math.sqrt(2), .75)
+    buck_step_down_exact_input(vdc, vout, gnd, 3.1, 24*math.sqrt(2), .75)
 
 
 def connect_single_row(to_connect: List, ref: str):
