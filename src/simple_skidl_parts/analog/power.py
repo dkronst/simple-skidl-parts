@@ -418,7 +418,8 @@ def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float =
     # For C1, C2, low ESR is required. 
     ci3, c_boot, c_slow_start = [TrackedPart("Device", "C", value=v) for v in ["10p", "100p", "10p"]]
 
-    ci1, ci2 = [Part("Device", "CP", value="10u", footprint="CP_Radial_D10.0mm_P5.00mm") for _ in range(2)]
+    NUM_CAP_DECOUPLE = 6  # Ain't no kill like overkill...
+    c_input_dec = reduce(lambda x,y: x | y, (TrackedPart("Device", "C", value="10u") for _ in range(NUM_CAP_DECOUPLE)))
 
     r_value = 10000
     v_ref = 0.8  # from datasheet
@@ -433,21 +434,24 @@ def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float =
         
     print(f"Minimum Inductance: {l_min*1000*1000}𝜇H, Inductor RMS current: {i_ind_rms}")
 
-    l = Part("Device", "L", value=linear.get_value_name(l_min*1.2))
+    l = Part("Device", "L", value=linear.get_value_name(l_min*1.2), footprint="L_12x12mm_H6mm")
     
-    f_co = 2.5E+4
+    f_co = 1E+4
     c_out_value = 1/(2*math.pi*(output_voltage/max_current)*f_co)
     print(f"C_out: {c_out_value*1E+6}𝜇F")
     
-    c_o_1 = Part("Device", "CP", value=linear.get_value_name(c_out_value*2))
-    c_o_2 = Part("Device", "CP", value=linear.get_value_name(c_out_value*2))
+    c_o_1 = Part("Device", "CP", value=linear.get_value_name(c_out_value*2), footprint="CP_Radial_D5.0mm_P2.50mm")
+    c_o_2 = Part("Device", "CP", value=linear.get_value_name(c_out_value*2), footprint="CP_Radial_D5.0mm_P2.50mm")
 
     # Output Compensation
     v_gg = 800
     g_dc = v_gg*v_ref/output_voltage
-    r_esr = 25E-3 #Ω
+    r_esr = 50E-3 #Ω
     PHASE_MARGIN = math.pi/3
-    output_capacitance = linear.e_series_number(c_out_value, 24)*4 # since we have 2 caps of 2 times c_out_value
+
+    output_capacitance = linear.e_series_number(c_out_value*4, 24) # since we have 2 caps of 2 times c_out_value
+    c_out_dec = reduce(lambda x,y: x | y, (TrackedPart("Device", "C", value=linear.get_value_name(c_out_value)) for _ in range(NUM_CAP_DECOUPLE)))
+
     phase_loss = math.atan(2*math.pi*f_co*r_esr*output_capacitance) - \
             math.atan(2*math.pi*f_co*(output_voltage/max_current)*output_capacitance)
     phase_boost = (PHASE_MARGIN-math.pi/2)-phase_loss
@@ -456,6 +460,8 @@ def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float =
     k = math.tan(phase_boost/2+math.pi/4)
     f_z1 = f_co/k
     f_p1 = f_co*k
+    print(f"Calculated F_z1: {f_z1} Hz F_p1: {f_p1} Hz k: {k} Phase loss: {phase_loss} Phase boost: {phase_boost} Output Capacitance: {output_capacitance*1E+6}𝜇F")
+    print(f"Calculated gain: {g_dc}")
     c_z_val = 1/(2*math.pi*f_z1*r_z_val)
     c_p_val = 1/(2*math.pi*f_p1*r_z_val)
     print(f"Calculated R_z: {r_z_val}Ω C_z: {c_z_val*1000*1000}𝜇F C_p: {c_p_val*1000*1000}𝜇F")
@@ -477,19 +483,21 @@ def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float =
     d = TrackedPart("Device", "D_Schottky", value="SS54", footprint="Diode_SMD:D_SOD-123", sku="JLCPCB:C22452")
 
     # Construct the circuit:
-    inp & ( ci1 | ci2 | ci3) & gnd
 
     lib = SchLib(SSP_LIB_PATH, tool=SKIDL)
     tps = TrackedPart(lib, "TPS54331", footprint="SOIC-8_3.9x4.9mm_P1.27mm", sku="JLCPCB:C9865")
+
+    tps["VIN"] & inp & ( c_input_dec | ci3) & gnd
 
     tps["EN"] & r_en1 & inp
     tps["EN"] & r_en2 & gnd
     tps["SS"] & c_slow_start & gnd
     
     out & r5 & tps["VSNS"] & r6 & gnd
-    out & (c_o_1 | c_o_2) & gnd
+    out & (c_o_1 | c_o_2 | c_out_dec) & gnd
 
     tps["BOOT"] & c_boot & tps["PH"]
-    tps["GND"] & d & tps["PH"] & l & out
+    tps["PH"] & d & tps["GND"] 
+    tps["PH"] & l & out
 
     tps["COMP"] & (c_p | (c_z & r_z)) & gnd

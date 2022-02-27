@@ -63,6 +63,6 @@ def test_buck_high_range(v_in, voltage_out, max_current):
     vout.drive = POWER
     pow.buck_step_down_regular(v12, vout, gnd, voltage_out, vmin, vmax, max_current )
 
-    #ERC()
+    ERC()
     
-    #generate_netlist(file_=open(f"/tmp/buck_reg_test_{v_in}_{voltage_out}_{max_current}.net", "w"))
+    generate_netlist(file_=open(f"/tmp/buck_reg_test_{v_in}_{voltage_out}_{max_current}.net", "w"))
