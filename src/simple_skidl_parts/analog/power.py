@@ -450,7 +450,9 @@ def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float =
     PHASE_MARGIN = math.pi/3
 
     output_capacitance = linear.e_series_number(c_out_value*4, 24) # since we have 2 caps of 2 times c_out_value
-    c_out_dec = reduce(lambda x,y: x | y, (TrackedPart("Device", "C", value=linear.get_value_name(c_out_value)) for _ in range(NUM_CAP_DECOUPLE)))
+    c_out_dec = reduce(lambda x,y: x | y, (
+        TrackedPart("Device", "C", value=linear.get_value_name(c_out_value)) if c_out_value < 1E-5 else Part("Device", "CP", value=linear.get_value_name(c_out_value), footprint="CP_Radial_D5.0mm_P2.50mm") 
+            for _ in range(NUM_CAP_DECOUPLE)))
 
     phase_loss = math.atan(2*math.pi*f_co*r_esr*output_capacitance) - \
             math.atan(2*math.pi*f_co*(output_voltage/max_current)*output_capacitance)
