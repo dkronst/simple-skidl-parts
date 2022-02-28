@@ -158,10 +158,9 @@ def esp32_wroom_external_programmer(mcu: Part, v33: Net, gnd: Net) -> Bus:
     flash_button = TrackedPart("Switch", "SW_SPST")
     
     gnd & rst_button & rst
-    gnd & flash_button & rst
+    gnd & flash_button & flash
 
     gnd & TrackedPart("Device", "C", value="1u") & rst
-    v33 & TrackedPart("Device", "R", value="10K") & rst
 
     mcu.match_pin_regex = True
 

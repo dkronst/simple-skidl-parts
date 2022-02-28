@@ -253,6 +253,12 @@
             "sku": "JLCPCB:C149504"
         }
     ],
+    "R 150K": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C17470"
+        }
+    ],
     "R 300K": [
         {
             "footprint": "R_0805_2012Metric",
@@ -297,7 +303,7 @@
     ],
     "MMSD914": [
         {
-            "footprint": "SOD-123",
+            "footprint": "D_SOD-123",
             "sku": "JLCPCB:C81598"
         }
     ],

@@ -238,19 +238,19 @@ def reverse_polarity_protection(vin: Net, gnd: Net, vout: Net, input_voltage: fl
         # Add a zenner diode to clamp the voltage to ~ 5.6V.
         d = TrackedPart("Diode", "ZMMxx", value="ZMM5V6", footprint="D_MiniMELF", sku="JLCPCB:C8062")
         r = R(50E+3)
-        r[1] += d[2]
-        r[2] += gnd
-        d[1] += vout
-        gate_in = r[1]
+        pfet["G"] & d & pfet["S"]
+        pfet["G"] & r & gnd
     else:
-        gate_in = gnd
+        pfet["G"] += gnd
+    
+    pfet["S"] += vout
+    pfet["D"] += vin
+        
     
     assert input_voltage >= 4, "Currently, only 4V and upwards are supported for reverse polarity protection"
 
     # The power mosfet is IRF9540N(PbF) in a TO-220AB config.
-    pfet["G"] += gate_in
-    pfet["D"] += vin
-    pfet["S"] += vout
+
 
 
 @subcircuit
@@ -407,7 +407,7 @@ def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float =
     """
     if rpp:
         rpol = reverse_polarity_protection(input_voltage=input_vmax, max_current=max_current)
-        inp = Net.get(vin.name)
+        inp = Net("12VP")
         inp.drive=POWER
         rpol.vin += vin
         rpol.vout += inp
@@ -503,3 +503,7 @@ def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float =
     tps["PH"] & l & out
 
     tps["COMP"] & (c_p | (c_z & r_z)) & gnd
+    tps["GND"] += gnd
+
+    c_bulk_in = Part("Device", "CP", value="100µF", footprint="Capacitor_THT:CP_Radial_D8.0mm_P3.50mm")
+    inp & c_bulk_in & gnd

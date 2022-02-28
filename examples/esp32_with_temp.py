@@ -1,5 +1,6 @@
 from re import A
 from simple_skidl_parts.analog.power import *
+from simple_skidl_parts.analog.power import buck_step_down_regular
 from simple_skidl_parts.analog.vdiv import *
 from simple_skidl_parts.units.linear import *
 from simple_skidl_parts.parts_wrapper import TrackedPart, create_bom
@@ -57,9 +58,11 @@ def main() -> None:
     prg[3] += rx
     prg[4] += tx
 
+    buck_step_down_regular(v12, v33, gnd, 3.3, 15, 4.5, 1.5)
+
     ERC()
 
-    generate_netlist()
+    generate_netlist(file_="/tmp/esp32_with_temp.net")
 
 if __name__ == "__main__":
     main()
