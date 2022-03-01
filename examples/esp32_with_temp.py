@@ -63,6 +63,7 @@ def main() -> None:
     ERC()
 
     generate_netlist(file_="/tmp/esp32_with_temp.net")
+    create_bom("JLCPCB", "/tmp/esp_with_temp_bom.csv", default_circuit)
 
 if __name__ == "__main__":
     main()
