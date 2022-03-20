@@ -102,13 +102,13 @@ def _get_led_value(footprint: str, color: LedSingleColors) -> Dict:
 
 
 @package
-def led_simple(signal: Net, gnd: Net, sig_voltage: float, color: LedSingleColors, size: float):
+def led_simple(signal: Net, gnd: Net, sig_voltage: float, color: LedSingleColors, size: float, led_attenuation: float = 1.0, ref_tmpl: str = "LED"):
     fp = _get_closest_footprint(size)
     led_data = _get_led_value(fp, color)
-    led = TrackedPart("Device", "LED_Small", value=led_data["value"], footprint=fp, sku=led_data.get("sku"))
+    led = TrackedPart("Device", "LED_Small", value=led_data["value"], footprint=fp, sku=led_data.get("sku"), ref=ref_tmpl)
     print(f"LED sku: {led.sku} for {color}, {size}mm")
     led["A"] += signal
-    i_led = led_data["i_f"]
+    i_led = led_attenuation * led_data["i_f"]
     led_f = led_data["v_f"]
 
     r_value = (sig_voltage - led_f)/i_led

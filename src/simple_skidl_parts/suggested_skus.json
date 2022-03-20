@@ -192,7 +192,7 @@
     "R 10K": [
         {
             "footprint": "R_0805_2012Metric",
-            "sku": "JLCPCB:C25804"
+            "sku": "JLCPCB:C17414"
         }
     ],
     "R 11K": [
@@ -287,6 +287,12 @@
         {
             "footprint": "R_0603_1608Metric",
             "sku": "JLCPCB:C234656"
+        }
+    ],
+    "R 910K": [
+        {
+            "footprint": "R_0805_2012Metric",
+            "sku": "JLCPCB:C246827"
         }
     ],
     "R 1M": [

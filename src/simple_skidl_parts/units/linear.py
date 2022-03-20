@@ -43,7 +43,7 @@ def e_series_number(res: float, series: int) -> float:
         # some special cases (unknown why it's like that, but that's the way it is)
         # for E24, the values are not as calculated.
         digits = int(math.log10(res))
-        E24 = [1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1]
+        E24 = [1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1, 10.0]
 
         i = bisect.bisect_left(E24, res/math.pow(10, digits))
         j = bisect.bisect_right(E24, res/math.pow(10, digits))

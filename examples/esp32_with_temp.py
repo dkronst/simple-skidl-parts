@@ -16,7 +16,7 @@ def main() -> None:
     gnd.drive = POWER
     v33.drive = POWER
 
-    mcu = Part("RF_Module", "ESP32-WROOM-32D", footprint = "ESP32-WROOM-32")
+    mcu = TrackedPart("RF_Module", "ESP32-WROOM-32D", footprint="ESP32-WROOM-32", sku="JLCPCB:C701343")
     esp32_wroom_external_programmer(mcu, v33, gnd)
 
     scl += mcu["IO22"]
@@ -24,7 +24,7 @@ def main() -> None:
     miso += mcu["IO19"]
     mosi += mcu["IO18"]
     
-    led1, led2 = [Part("LED", "WS2812B", footprint="LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm") for _ in range(2)]
+    led1, led2 = [Part("LED", "WS2812B", footprint="LED_SMD:LED_SK6812MINI_PLCC4_3.5x3.5mm_P1.75mm") for _ in range(2)]
     led1["VDD"] | led2["VDD"] | v33
     led1["VSS"] | led2["VSS"] | gnd
     led1["DIN"] += mcu["IO17"]
@@ -50,7 +50,7 @@ def main() -> None:
     led_comm[5] += rx_5v
     led_comm[6] += NC
     
-    rx & TrackedPart("Diode", "1N4148W") & rx_5v
+    rx_5v & TrackedPart("Diode", "1N4148W") & rx
 
     prg = Part("Connector", "Conn_01x04_Female", label="PROGRAM", footprint="PinHeader_1x04_P2.00mm_Vertical")
     prg[1] += gnd

@@ -81,7 +81,7 @@ def full_bridge_rectifier(vac1: Net, vac2: Net, dc_out_p:Net, dc_out_m:Net, max_
     Uses a full-bridge rectifier to rectify an input AC voltage source with enough capacitors to get a somewhat
     clean DC output. To actually use it, it must go through another proper regulator (e.g. linear reg, buck)
 
-    NOTE: Since there's no ground in this subcircuit, consider the implications for DC. 
+    NOTE: Since there's no ground in this subcircuit, consider the implications for DC.
 
     Args:
         vac1 (Net): Input AC power source
@@ -175,7 +175,7 @@ def buck_step_down_exact_input(vin: Net, out: Net, gnd: Net, output_voltage: flo
 
     # Some values:
     # for 100uH 1.5A -> C167258 @ L_12x12mm_H6mm
-    l1 = Part("Device", "L", value=get_inductance(v_d1), footprint="Inductor_SMD:L_0805_2012Metric") 
+    l1 = Part("Device", "L", value=get_inductance(v_d1), footprint="Inductor_SMD:L_10.4x10.4_H4.8") 
     r1 = R(resistance_r1, 48)  # Requires 1% accuracy or better, recommended metal film res. Locate near FB pin
     capacitance_out, capacitance_ff = get_ff_out_capacitance()
     c_ff = TrackedPart("Device", "C", value=capacitance_ff)
@@ -482,7 +482,7 @@ def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float =
 
     # Catch Diode
     
-    d = TrackedPart("Device", "D_Schottky", value="SS54", footprint="Diode_SMD:D_SOD-123", sku="JLCPCB:C22452")
+    d = TrackedPart("Device", "D_Schottky", value="SS54", footprint="Diode_SMD:D_SMA", sku="JLCPCB:C22452")
 
     # Construct the circuit:
 
@@ -505,5 +505,5 @@ def buck_step_down_regular(vin: Net, out: Net, gnd: Net, output_voltage: float =
     tps["COMP"] & (c_p | (c_z & r_z)) & gnd
     tps["GND"] += gnd
 
-    c_bulk_in = Part("Device", "CP", value="100µF", footprint="Capacitor_THT:CP_Radial_D8.0mm_P3.50mm")
+    c_bulk_in = Part("Device", "CP", value="100µF", footprint="Capacitor_THT:CP_Radial_D6.3mm_P2.50mm")
     inp & c_bulk_in & gnd

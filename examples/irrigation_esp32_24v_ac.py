@@ -18,9 +18,7 @@ from simple_skidl_parts.analog.led import led_simple, LedSingleColors
 
 from skidl import *
 
-_R = Part("Device", "R", footprint='Resistor_SMD:R_0805_2012Metric', dest=TEMPLATE)
-
-def connect_power(vout: Net, vin: Net, gnd: Net) -> None:
+def connect_power(vout: Net, vin: Net, gnd: Net) -> Net:
     """
     Create a stabilized output voltage of 3v3 for the MCU
 
@@ -28,11 +26,14 @@ def connect_power(vout: Net, vin: Net, gnd: Net) -> None:
         vout (Net): output voltage (3v3 DC)
         vin (Net): input (24AC)
         gnd (Net): just the ground
+    Return:
+        The 35VDC net
     """
     vdc = Net("35VDC")
     vdc.drive = POWER
     full_bridge_rectifier(vin, gnd, vdc, gnd, 0.5, 24*math.sqrt(2))
     buck_step_down_exact_input(vdc, vout, gnd, 3.1, 24*math.sqrt(2), .75)
+    return vdc
 
 
 def connect_single_row(to_connect: List, ref: str):
@@ -51,7 +52,7 @@ def connect_terminal_pairs(to_connect: List, ref: str):
 
 
 def main():
-    num_of_24vac_values = 8
+    num_of_24vac_values = 2
     num_of_9vdc_pulse_valves = 6
     single_row = False
 
@@ -70,7 +71,7 @@ def main():
 
     # power for the MCU:
     v33 = Net("+3V3")
-    connect_power(v33, v24ac, gnd)
+    vdc_35v = connect_power(v33, v24ac, gnd)
     jack = Part("Connector", "Barrel_Jack_Switch_Pin3Ring", footprint="BarrelJack_CUI_PJ-102AH_Horizontal")
     jack["1"] += gnd
     jack["2"] += v24ac
@@ -88,6 +89,8 @@ def main():
 
     # get the best pins to use:
     best_pins = esp_module.get_usable_gpios()
+
+
     to_connect = []
 
     # create switches:
@@ -103,25 +106,30 @@ def main():
         p += otc.signal
         gnd += otc.gnd
 
+    # some sensors:
+
+    # Connect voltage divider to know the voltage over the capacitors (we can then detect a shutdown)
+    vdiv(vdc_35v, mcu[best_pins.pop(0)], gnd, 2/35)
 
     if single_row:
         connect_single_row(to_connect, "24VAC_SOL")
     else:
         connect_terminal_pairs(to_connect, "24VAC_SOL")
 
-    # for o in to_connect:
-        
-    #     d = TrackedPart("Device", "D_Small", sku="JLCPCB:C95872", footprint="D_SMA")
-    #     d_v_f = 1.1
-    #     o.load1 += d[1]
-    #     led = led_simple(sig_voltage=24-d_v_f, color=LedSingleColors.GREEN, size=1.6)
-    #     led.signal += d[2]
-    #     o.load2 += led.gnd
+    for o in to_connect:
+        # We need to a small diode to protect the LED from reverse current 
+        d = TrackedPart("Device", "D_Small", sku="JLCPCB:C95872", footprint="D_SMA")
+        d_v_f = 1.1  # That's the forward voltage drop of the diode
+        o.load1 += d[1]
+        led = led_simple(sig_voltage=24-d_v_f, color=LedSingleColors.GREEN, size=1.6, led_attenuation=0.5, ref_tmpl="LED_SOL")
+        led.signal += d[2]
+        o.load2 += led.gnd
     
     Net.get("+3V3").do_erc = False
     ERC()
 
     generate_netlist(file_=open("/tmp/irrigation_netlist.net", "w"))
+    # generate_pcb(file_=open("/tmp/irrigation_pcb.kicad_pcb", "w"))
     create_bom("JLCPCB", "/tmp/irrigation_bom.csv", default_circuit)
     # generate_svg()
 
