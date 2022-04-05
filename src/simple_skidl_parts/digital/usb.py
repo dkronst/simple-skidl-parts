@@ -18,7 +18,7 @@ def usb_to_serial(convert_to_voltage: float = 3.3) -> Bus:
     Returns:
         Bus: A set of pins to be used as the UART output and
     """
-    bus = slow_usb_type_c_with_power(convert_to_voltage=convert_to_voltage)
+    bus = slow_micro_usb_with_power(convert_to_voltage=convert_to_voltage)
     v33 = bus[1]
     gnd = bus["GND"]
     v5  = bus["+5V"]
@@ -40,7 +40,7 @@ def usb_to_serial(convert_to_voltage: float = 3.3) -> Bus:
 
 
 @package
-def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3.3, 
+def slow_micro_usb_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3.3, 
         esd_protection: bool=True):
     """
     Creates a subcircuit with a USB recepticle connector to be used as a "fast" (a.k.a. slow) USB - up to 1.2MB/sec and 
@@ -57,8 +57,6 @@ def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3
     usb_connector = TrackedPart("Connector", "USB_B_Micro", footprint="USB_Micro-B_Amphenol_10118194_Horizontal", sku="JLCPCB:C132563")
     usb_connector["ID"] += NC
 
-    
-
     v5.drive = POWER
     gnd.drive = POWER
     v33.drive = POWER
@@ -69,26 +67,16 @@ def slow_usb_type_c_with_power(v33, gnd, v5, dp, dm, convert_to_voltage: float=3
     usb_connector["VBUS"] |  v5
 
     usb_connector["SHIELD"] += NC
+    dp += Net("PROT_USB_D+")
+    dm += Net("PROT_USB_D-")
 
     if esd_protection:
-        c_dp = Net("DP+")
-        c_dm = Net("DP-")
-        esdp = TrackedPart("Power_Protection", "USBLC6-2SC6", footprint="SOT-23-6", sku="JLCPCB:C2827654") # Alternative: C7519
-        esdp["GND"] += usb_connector["GND"]
-        esdp["VBUS"] += usb_connector["VBUS"]
-        # c_esd = TrackedPart("Device", "C", value="100n")
-        # c_esd[1] += esdp["GND"]
-        # c_esd[2] += esdp["VBUS"]
-        dp += Net("PROT_USB_D+")
-        dm += Net("PROT_USB_D-")
-        dp += esdp["6"]
-        dm += esdp["4"]
-        c_dp += esdp["1"]
-        c_dm += esdp["3"]
-    else:
-        c_dp = dp
-        c_dm = dm
+        # The following "PESD3V3L5UY" has the same pinout as the "SMF05CT1G" that is a part of the JLCPCB collection.
+        esdp = TrackedPart("Power_Protection", "PESD3V3L5UY", footprint="SOT-363_SC-70-6", sku="JLCPCB:C15879")
+        esdp["A"] += usb_connector["GND"]
+        esdp["K4"] += usb_connector["VBUS"]
+        dp += esdp["K2"]
+        dm += esdp["K3"]
 
-
-    usb_connector["D+"] | c_dp
-    usb_connector["D-"] | c_dm
+    usb_connector["D+"] | dp
+    usb_connector["D-"] | dm
