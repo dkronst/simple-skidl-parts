@@ -27,7 +27,19 @@ def _create_lib() -> None:
     ]
     for p in pins:
         tps54331 += p
+    
+    hlk_power = Part(name="HLK_10MXX", tool=SKIDL, dest=TEMPLATE)
+    hlk_power.ref_prefix = "U"
+    hlk_power.description = "Hilink 10Mxx power supply"
+    pins = [
+        Pin(num=1, name="ACP", func=Pin.types.PWRIN),
+        Pin(num=2, name="ACN", func=Pin.types.PWRIN),
+        Pin(num=3, name="VO-", func=Pin.types.PWROUT),
+        Pin(num=4, name="VO+", func=Pin.types.PWROUT),
+    ]
     lib += tps54331
+    lib += hlk_power
+
     lib.export(SSP_LIB_PATH)
 
 def main() -> None:

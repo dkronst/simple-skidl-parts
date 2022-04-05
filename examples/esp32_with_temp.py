@@ -60,6 +60,16 @@ def main() -> None:
 
     buck_step_down_regular(v12, v33, gnd, 3.3, 15, 4.5, 1.5)
 
+    # Also add a temperature sensor
+    temp_sensor = Part("Sensor_Temperature", "MCP9808_MSOP", footprint="MSOP-8-1EP_3x3mm_P0.65mm_EP1.68x1.88mm_ThermalVias")
+    for p in ["A0", "A1", "A2", "GND"]:
+        temp_sensor[p] += gnd
+    temp_sensor["VDD"] += v33
+    temp_sensor["SDA"] += sda
+    temp_sensor["SCL"] += scl
+
+    scl & R(4700) & v33 & R(4700) & sda
+
     ERC()
 
     generate_netlist(file_="/tmp/esp32_with_temp.net")
