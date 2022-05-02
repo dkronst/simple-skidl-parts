@@ -193,12 +193,12 @@ def buck_step_down_exact_input(vin: Net, out: Net, gnd: Net, output_voltage: flo
     vdiv += regulator["FB"]
     vdiv += c_ff[1]
     c_ff[2] | out | r2[2] 
-    gnd | r1[1] | regulator["GND"] | regulator[5] | d1[1] 
+    gnd | r1[1] | regulator["GND"] | regulator[5] | d1[2] 
     gnd | c_out[2] 
     gnd | c_in[2]
     l1[2] += out
     c_out[1] | out
-    l1[1] | regulator["OUT"] | d1[2] 
+    l1[1] | regulator["OUT"] | d1[1] 
 
     if input_voltage >= 4:
         rpp = reverse_polarity_protection(input_voltage=input_voltage)

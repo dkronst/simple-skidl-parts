@@ -8,7 +8,7 @@ from typing import List
 from simple_skidl_parts.parts_wrapper import TrackedPart
 
 from skidl import *
-from .usb import slow_usb_type_c_with_power
+from .usb import slow_micro_usb_with_power
 from ..analog.resistors import small_resistor as _R
 from ..analog.led import LedSingleColors, led_with_bjt
 
@@ -92,7 +92,7 @@ def esp32_s2_with_serial_usb(mcu: Part) -> Bus:
         required for FTDI programming, "flash" and "reset" pins that can be directly attached to a switch
         connected to ground.
     """
-    usb = slow_usb_type_c_with_power()
+    usb = slow_micro_usb_with_power()
     gnd = Net.get("GND")
     v33 = Net.get("+3V3")
     v5 = Net("+5V")
