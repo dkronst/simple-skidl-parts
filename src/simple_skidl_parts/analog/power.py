@@ -110,9 +110,10 @@ def full_bridge_rectifier(vac1: Net, vac2: Net, dc_out_p:Net, dc_out_m:Net, max_
         dc_out_m += d[2]
 
 @subcircuit
-def buck_step_down_exact_input(vin: Net, out: Net, gnd: Net, output_voltage: float, input_voltage:float, max_current: float):
+def buck_step_down_exact_input(vin: Net, out: Net, gnd: Net, output_voltage: float, input_voltage:float, max_current: float, add_rpp: bool = True):
     """
-    Creates a regulated buck (step-down) subcircuit with all the required components. Adds a reverse polarity protection.
+    Creates a regulated buck (step-down) subcircuit with all the required components. Adds a reverse polarity protection unless
+    add_rpp is set to False or the input voltage is smaller than 4V.
     
     Args:
         vin (Net): Unregulated input net
@@ -121,6 +122,7 @@ def buck_step_down_exact_input(vin: Net, out: Net, gnd: Net, output_voltage: flo
         output_voltage (float): The required regulated output voltage
         input_voltage (float): The expected (maximum) input voltage (unregulated)
         max_current (float): Maxiumu current rating for the circuit
+        add_rpp (bool): Add reverse polarity protection
     """
 
     def get_inductance(V_D: float) -> str:
@@ -200,7 +202,7 @@ def buck_step_down_exact_input(vin: Net, out: Net, gnd: Net, output_voltage: flo
     c_out[1] | out
     l1[1] | regulator["OUT"] | d1[1] 
 
-    if input_voltage >= 4:
+    if input_voltage >= 4 and add_rpp:
         rpp = reverse_polarity_protection(input_voltage=input_voltage)
         rpp.vin += vin
         unreg_inp = rpp.vout
@@ -228,17 +230,17 @@ def reverse_polarity_protection(vin: Net, gnd: Net, vout: Net, input_voltage: fl
         vout (Net): Output net (protected + polarity)
         input_voltage (float): The voltage required for normal operation
     """
-    if max_current >= 4.0:
+    if max_current >= 4.0 or input_voltage >= 30:
         pfet = Part("Transistor_FET", "IRF9540N", value="IRF9540N", footprint="TO-220-3_Horizontal_TabDown")
     else:
         # JLCPCB part #C15127
         pfet = TrackedPart("Transistor_FET", "AO3401A", value="AO3401A", footprint="SOT-23", sku="JLCPCB:C15127")
 
-    if input_voltage >= 10:  # 10V for the max gate voltage of the mosfet (AO3401A)
-        # Add a zenner diode to clamp the voltage to ~ 5.6V.
+    if input_voltage >= 10:  # 10V for the max gate voltage of the mosfet (AO3401A) and 12V for the IRF9540N
+        # Add a zenner diode to clamp the voltage (GS) to <= 5.6V (which is fully ON for both FETs)
         d = TrackedPart("Diode", "ZMMxx", value="ZMM5V6", footprint="D_MiniMELF", sku="JLCPCB:C8062")
         r = R(50E+3)
-        pfet["G"] & d & pfet["S"]
+        pfet["S"] & d & pfet["G"]
         pfet["G"] & r & gnd
     else:
         pfet["G"] += gnd

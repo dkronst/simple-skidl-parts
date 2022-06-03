@@ -5,7 +5,7 @@ Create an irrigation computer that can control various solonoid type latching wa
 """
 
 import math
-from typing import List, Tuple
+from typing import List
 
 from simple_skidl_parts.analog.power import *
 from simple_skidl_parts.analog.power import optocoupled_triac_switch
@@ -32,7 +32,8 @@ def connect_power(vout: Net, vin: Net, gnd: Net) -> Net:
     vdc = Net("35VDC")
     vdc.drive = POWER
     full_bridge_rectifier(vin, gnd, vdc, gnd, 0.5, 24*math.sqrt(2))
-    buck_step_down_exact_input(vdc, vout, gnd, 3.1, 24*math.sqrt(2), .75)
+    # No need for rpp if we are using a full-bridge rectifier.
+    buck_step_down_exact_input(vdc, vout, gnd, 3.1, 24*math.sqrt(2), .75, add_rpp=False)
     return vdc
 
 
