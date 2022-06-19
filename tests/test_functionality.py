@@ -43,13 +43,24 @@ def mock_part(*args, **kwargs):
     
     # Search for the spice libraries in the lib_search_paths
 
-
     import skidl.pyspice as p
+ 
     match args:
         case ["Transistor_FET", _]:
-            the_part = M(model="IRFP9240")
-        case ["Device", "D"] | ["Diode", _]:
-            the_part = D()
+            splib = SchLib("ph_fet.lib")
+            the_part = Part(splib, "BS250_PH")
+            for i, p in zip((1,2,3), "DGS"):
+                the_part[i].aliases += [p]
+            assert("value" in kwargs)
+        case ["Diode", _]:
+            splib = SchLib("m_zener.lib")
+            if "5v6" in kwargs["value"].lower():
+                the_part = Part(splib, "mmqa5v6t1")
+            else:
+                assert False, f"not implemented {kwargs}"
+        case ["Device", "D"]:
+            splib = SchLib("on_rect.lib")
+            the_part = Part(splib, "1n4001rl")
         case ["Device", "R"]:
             the_part = R()
         case _:
@@ -71,7 +82,7 @@ def test_reverse_pol_protection(monkeypatch):
 
     rpol = reverse_polarity_protection(max_current=2, input_voltage=25)
     vs = V(ref="VS", dc_value=24 @ u_V)
-    r1 = R(value = 1 @ u_Ohm)            # Create a 1 Kohm resistor.
+    r1 = R(value = 1 @ u_kOhm)            # Create a 1 Kohm resistor.
     rpol.vin += vs['p']
     rpol.gnd += gnd
     rpol.vout += r1[1]
@@ -90,3 +101,4 @@ def test_reverse_pol_protection(monkeypatch):
     print('='*15)
     for v, i in zip(voltage.as_ndarray(), current.as_ndarray()*1000):
         print('{:6.2f} {:6.2f}'.format(v, i))
+        assert v > 0 or abs(i) < 0.01
