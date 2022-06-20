@@ -1,7 +1,6 @@
 #import pytest
 from skidl import *
-import skidl.part
-from skidl.pyspice import V, R, gnd, u_V, u_kOhm, u_Ohm
+from skidl.pyspice import V, R, gnd, u_V, u_kOhm
 
 from simple_skidl_parts.analog.power import reverse_polarity_protection
 import simple_skidl_parts.parts_wrapper
